@@ -3,19 +3,16 @@ const wget = require('node-wget');
 const path = require('path');
 const fetch = require('node-fetch');
 
-/*wget({
-  url: 'https://www.reddit.com/r/worldnews/.json?limit=10',
-  dest: './scraper/worldnews.json'
-  });*/
+const ARTICLES_TO_SCRAPE = 10;
 
-fetch('https://www.reddit.com/r/worldnews/.json?limit=10')
+console.time('Scraper finished in');
+fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
 .then(function(res) {
   return res.json();
 }).then(function(json) {
-  //console.log(json);
-
-  for(let i = 0; i < 10; i++) {
-        metascrape.fetch(json.data.children[i].data.url, 1000).then((response) => {
+  let articlesReceived = 0;
+  for(let i = 0; i < ARTICLES_TO_SCRAPE; i++) {
+    metascrape.fetch(json.data.children[i].data.url, 1000).then((response) => {
       for (type in response) {
         if (type == 'openGraph') {
           console.log('\n----------');
@@ -37,15 +34,19 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=10')
           });
 
           console.log('Saved image to ./scraper/img/' + i + fileType + '\n');
+
+          articlesReceived++;
+          console.log('Articles received: ' + articlesReceived + ' of ' + ARTICLES_TO_SCRAPE + '.');
+
+          if (articlesReceived == ARTICLES_TO_SCRAPE) {
+            console.log('\n----------');
+            console.timeEnd('Scraper finished in');
+            console.log('----------\n');
+          }
+
           break;
         }
       }
     });
   }
-
-
-
-
 });
-
-
