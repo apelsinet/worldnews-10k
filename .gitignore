@@ -20,3 +20,6 @@ node_modules
 
 # Mac files
 .DS_Store
+
+# Scraped images.
+# scraper/img
