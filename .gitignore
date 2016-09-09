@@ -22,4 +22,4 @@ node_modules
 .DS_Store
 
 # Scraped images.
-# scraper/img
+scraper/img
