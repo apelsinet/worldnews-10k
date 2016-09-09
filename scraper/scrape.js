@@ -8,7 +8,7 @@ const path = require('path');
    url: 'https://www.reddit.com/r/worldnews/.json?limit=10',
    dest: './scraper/worldnews.json'
    });
-   */
+ */ 
 
 const file = './scraper/worldnews.json';
 jsonfile.readFile(file, function(err, obj) {
@@ -25,8 +25,11 @@ jsonfile.readFile(file, function(err, obj) {
         if (type == 'openGraph') {
           console.log('Article: ' + i + '.');
           console.log('Description: \n' + response[type].description + '\n');
+
           let img = response[type].image;
           let fileType = path.extname(img);
+          let questionMark = fileType.indexOf('?');
+          fileType = fileType.substring(0, questionMark != -1 ? questionMark : fileType.length);
 
           wget({
             url: img,
