@@ -19,11 +19,24 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
           console.log('Article: ' + i + '.');
           console.log('Article URL: ' + json.data.children[i].data.url);
           console.log('Article title: ' + json.data.children[i].data.title);
-          console.log('Article description: ' + response[type].description);
+          if (response[type].description != undefined) {
+            console.log('Article description: ' + response[type].description);
+          }
+          else {
+            console.log('Article description not found. Returning empty string.');
+            console.log('Article description: ');
+          }
           console.log('Comments URL: https://www.reddit.com' + json.data.children[i].data.permalink);
           console.log('Comments count: ' + json.data.children[i].data.num_comments);
 
-          let img = response[type].image;
+          let img = '';
+          if (response[type].image != undefined) {
+            img = response[type].image;
+          }
+          else {
+            img = 'http://orig11.deviantart.net/9506/f/2011/343/a/4/reddit_alien__practice_vector__by_cheesefaceman1-d4im2hh.png';
+            console.log('Image not found. Using generic reddit image.');
+          }
           let fileType = path.extname(img);
           let questionMark = fileType.indexOf('?');
           fileType = fileType.substring(0, questionMark != -1 ? questionMark : fileType.length);
