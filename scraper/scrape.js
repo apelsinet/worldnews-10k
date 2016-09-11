@@ -1,9 +1,29 @@
+// Modules for scraper
+const rimraf = require('rimraf');
+const fs = require('fs');
 const metascrape = require('metascrape');
 const wget = require('node-wget');
 const path = require('path');
 const fetch = require('node-fetch');
 
+// Modules for image-type checker
+const readChunk = require('read-chunk');
+const imageType = require('image-type');
+
+// Modules for converting images to JPG
+const JPEGEncoder = require('jpg-stream/encoder');
+const PNGDecoder = require('png-stream/decoder');
+const GIFDecoder = require('gif-stream/decoder');
+const ColorTransform = require('color-transform');
+
+// Modules for optimizing JPG images
+const imagemin = require('imagemin');
+const imageminMozjpeg = require('imagemin-mozjpeg');
+
+// Constants
+const IMG_DIR = './scraper/img/';
 const ARTICLES_TO_SCRAPE = 10;
+
 let obj = [];
 function article(id, url, title, desc, comUrl, comCount, imgPath) {
   this.id = id;
@@ -14,9 +34,14 @@ function article(id, url, title, desc, comUrl, comCount, imgPath) {
   this.comCount = comCount;
   this.imgPath = imgPath;
 }
-
 console.log('Scraper started.');
 console.time('Scraper finished in');
+
+console.log('Rimraf ' + IMG_DIR);
+rimraf.sync(IMG_DIR);
+console.log('Make dir ' + IMG_DIR);
+fs.mkdirSync(IMG_DIR);
+
 fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
 .then(function(res) {
   return res.json();
@@ -52,27 +77,78 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
             console.log('Image for article #' + i + ' not found. Using generic reddit image.');
           }
           let fileType = path.extname(img);
+          if (path.extname(img) == '') {
+            fileType = '.jpg';
+          }
           let questionMark = fileType.indexOf('?');
           fileType = fileType.substring(0, questionMark != -1 ? questionMark : fileType.length);
 
           wget({
             url: img,
-            dest: './scraper/img/' + i + fileType
+            dest: IMG_DIR + i + fileType
+          },
+          function(err, res) {
+            if (err) {
+              console.log('Image ' + i + ' failed to wget. Error: ' + err);
+            }
+            else {
+              console.log('Saved image to ' + IMG_DIR + i + fileType + '\n');
+              obj[i].imgPath = IMG_DIR + i + fileType;
+
+              articlesReceived++;
+              console.log('Articles received: ' + articlesReceived + ' of ' + ARTICLES_TO_SCRAPE + '.');
+
+              if (articlesReceived == ARTICLES_TO_SCRAPE) {
+                console.log('\n----------');
+                console.timeEnd('Scraper finished in');
+                console.log('----------\n');
+
+                let buffer;
+                console.log('Checking image-types for ' + ARTICLES_TO_SCRAPE + ' images and converting other formats to JPG.\n');
+                for(let j = 0; j < ARTICLES_TO_SCRAPE; j++) {
+                  buffer = readChunk.sync(obj[j].imgPath, 0, 12);
+                  console.log('Image ' + j + ': ' + imageType(buffer).ext);
+
+                  if (imageType(buffer).ext == 'png') {
+                    // convert a PNG to a JPEG
+                    fs.createReadStream(IMG_DIR + j + '.png')
+                      .pipe(new PNGDecoder)
+                      .pipe(new ColorTransform('rgb'))
+                      .pipe(new JPEGEncoder({ quality: 80 }))
+                      .pipe(fs.createWriteStream(IMG_DIR + j + '.jpg'));
+                    console.log('Converted PNG to JPG. New image path: ' + IMG_DIR + j + '.jpg');
+                    obj[j].imgPath = IMG_DIR + j + '.jpg';
+                    fs.unlinkSync(IMG_DIR + j + '.png');
+                    console.log('Removed old PNG file.');
+                  }
+
+                  else if (imageType(buffer).ext == 'gif') {
+                    // convert a GIF to a JPEG
+                    fs.createReadStream(IMG_DIR + j + '.gif')
+                      .pipe(new GIFDecoder)
+                      .pipe(new JPEGEncoder({ quality: 80 }))
+                      .pipe(fs.createWriteStream(IMG_DIR + j + '.jpg'));
+                    console.log('Converted GIF to JPG. New image path: ' + IMG_DIR + j + '.jpg');
+                    obj[j].imgPath = IMG_DIR + j + '.jpg';
+                    fs.unlinkSync(IMG_DIR + j + '.gif');
+                    console.log('Removed old GIF file.');
+                  }
+                }
+
+                imagemin([IMG_DIR + '*.jpg'], IMG_DIR, {
+                  plugins: [
+                    imageminMozjpeg()
+                  ]
+                }).then(files => {
+                  console.log('\nOptimized JPG images with imagemin-mozjpeg.');
+                });
+
+
+              }
+
+            }
           });
 
-          console.log('Saved image to ./scraper/img/' + i + fileType + '\n');
-          obj[i].imgPath = './scraper/img/' + i + fileType;
-
-          articlesReceived++;
-          console.log('Articles received: ' + articlesReceived + ' of ' + ARTICLES_TO_SCRAPE + '.');
-
-          if (articlesReceived == ARTICLES_TO_SCRAPE) {
-            console.log('\n----------');
-            console.timeEnd('Scraper finished in');
-            console.log('----------\n');
-            console.log(obj);
-            return module.exports(obj);
-          }
         }
       }
     });
