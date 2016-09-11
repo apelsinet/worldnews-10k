@@ -4,7 +4,18 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const ARTICLES_TO_SCRAPE = 10;
+let obj = [];
+function article(id, url, title, desc, comUrl, comCount, imgPath) {
+  this.id = id;
+  this.url = url;
+  this.title = title;
+  this.desc = desc;
+  this.comUrl = comUrl;
+  this.comCount = comCount;
+  this.imgPath = imgPath;
+}
 
+console.log('Scraper started.');
 console.time('Scraper finished in');
 fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
 .then(function(res) {
@@ -15,19 +26,22 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
     metascrape.fetch(json.data.children[i].data.url, 1000).then((response) => {
       for (type in response) {
         if (type == 'openGraph') {
-          console.log('\n----------');
-          console.log('Article: ' + i + '.');
-          console.log('Article URL: ' + json.data.children[i].data.url);
-          console.log('Article title: ' + json.data.children[i].data.title);
+          obj[i] = new article(i);
+
+          obj[i].url = json.data.children[i].data.url;
+          obj[i].title = json.data.children[i].data.title;
+
           if (response[type].description != undefined) {
-            console.log('Article description: ' + response[type].description);
+            // Trim whitespace and newlines from string.
+            obj[i].desc = response[type].description.trim();
           }
           else {
-            console.log('Article description not found. Returning empty string.');
-            console.log('Article description: ');
+            console.log('Article description for article #' + i + ' not found. Using empty string.');
+            obj[i].desc = '';
           }
-          console.log('Comments URL: https://www.reddit.com' + json.data.children[i].data.permalink);
-          console.log('Comments count: ' + json.data.children[i].data.num_comments);
+
+          obj[i].comUrl = 'https://www.reddit.com' + json.data.children[i].data.permalink;
+          obj[i].comCount = json.data.children[i].data.num_comments;
 
           let img = '';
           if (response[type].image != undefined) {
@@ -35,7 +49,7 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
           }
           else {
             img = 'http://orig11.deviantart.net/9506/f/2011/343/a/4/reddit_alien__practice_vector__by_cheesefaceman1-d4im2hh.png';
-            console.log('Image not found. Using generic reddit image.');
+            console.log('Image for article #' + i + ' not found. Using generic reddit image.');
           }
           let fileType = path.extname(img);
           let questionMark = fileType.indexOf('?');
@@ -47,6 +61,7 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
           });
 
           console.log('Saved image to ./scraper/img/' + i + fileType + '\n');
+          obj[i].imgPath = './scraper/img/' + i + fileType;
 
           articlesReceived++;
           console.log('Articles received: ' + articlesReceived + ' of ' + ARTICLES_TO_SCRAPE + '.');
@@ -55,11 +70,12 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
             console.log('\n----------');
             console.timeEnd('Scraper finished in');
             console.log('----------\n');
+            console.log(obj);
+            return module.exports(obj);
           }
-
-          break;
         }
       }
     });
   }
 });
+
