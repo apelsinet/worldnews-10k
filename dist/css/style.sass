@@ -48,13 +48,17 @@ section
   border-bottom: 2px solid $dark
   border-collapse: collapse
   .l
-    background: url('../img_comp/0.jpg')
-    background-size: cover
-    min-height: 10em
-    width: 10em // this width should be injected after knowing image width
+    float: left
+    overflow: hidden
+    min-width: 50%
+    img
+      width: 100%
+      height: auto
+  .r
+    float: right
+    max-width: 50%
   .l,.r
     display: table-cell
-    max-width: 50%
     @media (max-width: 500px)
       display: block
       width: 100%
@@ -67,8 +71,7 @@ section
 .c1,.c2
   border-right: 1px dotted $dark
 .i
-  background: $dark
-  min-height: 10em
+  overflow: hidden
 
 @media (max-width: 700px)
   .c1,.c2
@@ -89,7 +92,7 @@ section
   width: 100%
   height: 100%
   -webkit-filter: blur(1em)
-  -moz-filter: blur(5px)
-  -o-filter: blur(5px)
-  -ms-filter: blur(5px)
-  filter: blur(5px)
+  -moz-filter: blur(1em)
+  -o-filter: blur(1em)
+  -ms-filter: blur(1em)
+  filter: blur(1em)

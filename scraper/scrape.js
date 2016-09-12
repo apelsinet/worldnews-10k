@@ -26,8 +26,8 @@ const Jimp = require('jimp');
 // Constants
 const ARTICLES_TO_SCRAPE = 10;
 const IMG_DIR = './scraper/img/';
-const DIST_IMG_FULL = './dist/img_full/';
-const DIST_IMG_COMP = './dist/img_comp/';
+const DIST_IMG_FULL = './dist/f/';
+const DIST_IMG_COMP = './dist/c/';
 
 let obj = [];
 function article(id, url, title, desc, comUrl, comCount, imgPath, imgFull, imgComp) {
@@ -80,8 +80,8 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
             img = response[type].image;
           }
           else {
-            img = 'http://orig11.deviantart.net/9506/f/2011/343/a/4/reddit_alien__practice_vector__by_cheesefaceman1-d4im2hh.png';
-            console.log('Image for article #' + i + ' not found. Using generic reddit image.');
+            img = 'http://localhost:3000/not_found.png';
+            console.log('Image for article #' + i + ' not found. Using generic image.');
           }
           let fileType = path.extname(img);
           if (path.extname(img) == '') {
