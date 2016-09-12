@@ -20,12 +20,17 @@ const ColorTransform = require('color-transform');
 const imagemin = require('imagemin');
 const imageminMozjpeg = require('imagemin-mozjpeg');
 
+// Modules for creating low-res preview images
+const Jimp = require('jimp');
+
 // Constants
-const IMG_DIR = './scraper/img/';
 const ARTICLES_TO_SCRAPE = 10;
+const IMG_DIR = './scraper/img/';
+const DIST_IMG_FULL = './dist/img_full/';
+const DIST_IMG_COMP = './dist/img_comp/';
 
 let obj = [];
-function article(id, url, title, desc, comUrl, comCount, imgPath) {
+function article(id, url, title, desc, comUrl, comCount, imgPath, imgFull, imgComp) {
   this.id = id;
   this.url = url;
   this.title = title;
@@ -33,13 +38,15 @@ function article(id, url, title, desc, comUrl, comCount, imgPath) {
   this.comUrl = comUrl;
   this.comCount = comCount;
   this.imgPath = imgPath;
+  this.imgFull = imgFull;
+  this.imgComp = imgComp;
 }
 console.log('Scraper started.');
 console.time('Scraper finished in');
 
-console.log('Rimraf ' + IMG_DIR);
+console.log('Rimraf:\n' + IMG_DIR);
 rimraf.sync(IMG_DIR);
-console.log('Make dir ' + IMG_DIR);
+console.log('Make dir:\n' + IMG_DIR);
 fs.mkdirSync(IMG_DIR);
 
 fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
@@ -141,14 +148,41 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
                   ]
                 }).then(files => {
                   console.log('\nOptimized JPG images with imagemin-mozjpeg.');
+
+                  console.log('Rimraf:\n' + DIST_IMG_FULL + '\n' + DIST_IMG_COMP);
+                  rimraf.sync(DIST_IMG_FULL);
+                  rimraf.sync(DIST_IMG_COMP);
+                  console.log('Make dir:\n' + DIST_IMG_FULL + '\n' + DIST_IMG_COMP);
+                  fs.mkdirSync(DIST_IMG_FULL);
+                  fs.mkdirSync(DIST_IMG_COMP);
+
+                  for(let j = 0; j < ARTICLES_TO_SCRAPE; j++) {
+                    fs.createReadStream(IMG_DIR + j + '.jpg').pipe(fs.createWriteStream(DIST_IMG_FULL + j + '.jpg'));
+                    console.log('Copied ' + IMG_DIR + j + '.jpg to ' + DIST_IMG_FULL + j + '.jpg.');
+                    obj[j].imgFull = DIST_IMG_FULL + j + '.jpg';
+
+                    Jimp.read(IMG_DIR + j + '.jpg', function (err, image) {
+                      if (err) throw err;
+                      image.resize(32, Jimp.AUTO)
+                        .quality(80)
+                        .write(DIST_IMG_COMP + j + '.jpg');
+                    });
+                    console.log('Save compressed copy of ' + IMG_DIR + j + '.jpg to ' + DIST_IMG_COMP + j + '.jpg');
+                    obj[j].imgComp = DIST_IMG_COMP + j + '.jpg';
+                  }
+
+                  imagemin([DIST_IMG_COMP + '*.jpg'], DIST_IMG_COMP, {
+                    plugins: [
+                      imageminMozjpeg()
+                    ]
+                  }).then(files => {
+                    console.log('\nOptimized compressed JPG images with imagemin-mozjpeg.');
+                    console.log(obj);
+                  });
                 });
-
-
               }
-
             }
           });
-
         }
       }
     });
