@@ -89,6 +89,9 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
           }
           let questionMark = fileType.indexOf('?');
           fileType = fileType.substring(0, questionMark != -1 ? questionMark : fileType.length);
+          if (fileType == '.jpeg') {
+            fileType = '.jpg';
+          }
 
           wget({
             url: img,
