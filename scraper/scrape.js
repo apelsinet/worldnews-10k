@@ -23,11 +23,9 @@ const imageminMozjpeg = require('imagemin-mozjpeg');
 // Modules for creating low-res preview images
 const Jimp = require('jimp');
 
-// Constants
-const ARTICLES_TO_SCRAPE = 10;
-const IMG_DIR = './scraper/img/';
-const DIST_IMG_FULL = './dist/f/';
-const DIST_IMG_COMP = './dist/c/';
+const constants = require(__dirname + '/modules/constants');
+const cleanFolder = require(__dirname + '/modules/cleanFolder');
+
 
 let obj = [];
 function article(id, url, title, desc, comUrl, comCount, imgPath, imgFull, imgComp) {
@@ -44,17 +42,17 @@ function article(id, url, title, desc, comUrl, comCount, imgPath, imgFull, imgCo
 console.log('Scraper started.');
 console.time('Scraper finished in');
 
-console.log('Rimraf:\n' + IMG_DIR);
-rimraf.sync(IMG_DIR);
-console.log('Make dir:\n' + IMG_DIR);
-fs.mkdirSync(IMG_DIR);
+console.log('Rimraf:\n' + constants.IMG_DIR);
+rimraf.sync(constants.IMG_DIR);
+console.log('Make dir:\n' + constants.IMG_DIR);
+fs.mkdirSync(constants.IMG_DIR);
 
-fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
+fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_SCRAPE)
 .then(function(res) {
   return res.json();
 }).then(function(json) {
   let articlesReceived = 0;
-  for(let i = 0; i < ARTICLES_TO_SCRAPE; i++) {
+  for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
     metascrape.fetch(json.data.children[i].data.url, 1000).then((response) => {
       for (type in response) {
         if (type == 'openGraph') {
@@ -92,99 +90,77 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + ARTICLES_TO_SCRAPE)
           if (fileType == '.jpeg') {
             fileType = '.jpg';
           }
+          if (fileType != '.jpg' && fileType != '.png' && fileType != '.gif') {
+            img = 'http://localhost:3000/not_found.png';
+            console.log('Unknown file type for article #' + i + '. Using generic image.');
+            fileType = '.png';
+          }
 
-          wget({
-            url: img,
-            dest: IMG_DIR + i + fileType
-          },
-          function(err, res) {
-            if (err) {
-              console.log('Image ' + i + ' failed to wget. Error: ' + err);
-            }
-            else {
-              console.log('Saved image to ' + IMG_DIR + i + fileType + '\n');
-              obj[i].imgPath = IMG_DIR + i + fileType;
+
+          fetch(img)
+            .then(function(res) {
+              if (res.status == 404 || res.status == 403) {
+                console.log('Status: ' + res.status + ', using generic image.');
+                fs.createReadStream('./dist/not_found.png').pipe(fs.createWriteStream(constants.IMG_DIR + i + '.png'));
+                fileType = '.png';
+              }
+              else {
+                var dest = fs.createWriteStream(constants.IMG_DIR + i + fileType);
+                res.body.pipe(dest);
+              }
+
+              console.log('Saved image to ' + constants.IMG_DIR + i + fileType + '\n');
+              obj[i].imgPath = constants.IMG_DIR + i + fileType;
 
               articlesReceived++;
-              console.log('Articles received: ' + articlesReceived + ' of ' + ARTICLES_TO_SCRAPE + '.');
+              console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.');
 
-              if (articlesReceived == ARTICLES_TO_SCRAPE) {
+              if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
                 console.log('\n----------');
                 console.timeEnd('Scraper finished in');
                 console.log('----------\n');
 
-                let buffer;
-                console.log('Checking image-types for ' + ARTICLES_TO_SCRAPE + ' images and converting other formats to JPG.\n');
-                for(let j = 0; j < ARTICLES_TO_SCRAPE; j++) {
+                console.log('Checking image-types for ' + constants.ARTICLES_TO_SCRAPE + ' images and converting other formats to JPG.\n');
+                for(let j = 0; j < constants.ARTICLES_TO_SCRAPE; j++) {
+                  let buffer;
+                  console.log('Article #' + j + '.');
                   buffer = readChunk.sync(obj[j].imgPath, 0, 12);
                   console.log('Image ' + j + ': ' + imageType(buffer).ext);
 
                   if (imageType(buffer).ext == 'png') {
                     // convert a PNG to a JPEG
-                    fs.createReadStream(IMG_DIR + j + '.png')
+                    fs.createReadStream(constants.IMG_DIR + j + '.png')
                       .pipe(new PNGDecoder)
                       .pipe(new ColorTransform('rgb'))
-                      .pipe(new JPEGEncoder({ quality: 80 }))
-                      .pipe(fs.createWriteStream(IMG_DIR + j + '.jpg'));
-                    console.log('Converted PNG to JPG. New image path: ' + IMG_DIR + j + '.jpg');
-                    obj[j].imgPath = IMG_DIR + j + '.jpg';
-                    fs.unlinkSync(IMG_DIR + j + '.png');
-                    console.log('Removed old PNG file.');
+                      .pipe(new JPEGEncoder())
+                      .pipe(fs.createWriteStream(constants.IMG_DIR + j + '.jpg'));
+                    console.log('Converted PNG to JPG. New image path: ' + constants.IMG_DIR + j + '.jpg');
+                    obj[j].imgPath = constants.IMG_DIR + j + '.jpg';
+                    if (fileType == '.png') {
+                      fs.unlinkSync(constants.IMG_DIR + j + '.png');
+                      console.log('Removed old PNG file.');
+                    }
                   }
 
                   else if (imageType(buffer).ext == 'gif') {
                     // convert a GIF to a JPEG
-                    fs.createReadStream(IMG_DIR + j + '.gif')
+                    fs.createReadStream(constants.IMG_DIR + j + '.gif')
                       .pipe(new GIFDecoder)
-                      .pipe(new JPEGEncoder({ quality: 80 }))
-                      .pipe(fs.createWriteStream(IMG_DIR + j + '.jpg'));
-                    console.log('Converted GIF to JPG. New image path: ' + IMG_DIR + j + '.jpg');
-                    obj[j].imgPath = IMG_DIR + j + '.jpg';
-                    fs.unlinkSync(IMG_DIR + j + '.gif');
-                    console.log('Removed old GIF file.');
+                      .pipe(new JPEGEncoder())
+                      .pipe(fs.createWriteStream(constants.IMG_DIR + j + '.jpg'));
+                    console.log('Converted GIF to JPG. New image path: ' + constants.IMG_DIR + j + '.jpg');
+                    obj[j].imgPath = constants.IMG_DIR + j + '.jpg';
+                    if (fileType == '.gif') {
+                      fs.unlinkSync(constants.IMG_DIR + j + '.gif');
+                      console.log('Removed old GIF file.');
+                    }
                   }
                 }
-
-                imagemin([IMG_DIR + '*.jpg'], IMG_DIR, {
-                  plugins: [
-                    imageminMozjpeg()
-                  ]
-                }).then(files => {
-                  console.log('\nOptimized JPG images with imagemin-mozjpeg.');
-
-                  console.log('Rimraf:\n' + DIST_IMG_FULL + '\n' + DIST_IMG_COMP);
-                  rimraf.sync(DIST_IMG_FULL);
-                  rimraf.sync(DIST_IMG_COMP);
-                  console.log('Make dir:\n' + DIST_IMG_FULL + '\n' + DIST_IMG_COMP);
-                  fs.mkdirSync(DIST_IMG_FULL);
-                  fs.mkdirSync(DIST_IMG_COMP);
-
-                  for(let j = 0; j < ARTICLES_TO_SCRAPE; j++) {
-                    fs.createReadStream(IMG_DIR + j + '.jpg').pipe(fs.createWriteStream(DIST_IMG_FULL + j + '.jpg'));
-                    console.log('Copied ' + IMG_DIR + j + '.jpg to ' + DIST_IMG_FULL + j + '.jpg.');
-                    obj[j].imgFull = DIST_IMG_FULL + j + '.jpg';
-
-                    Jimp.read(IMG_DIR + j + '.jpg', function (err, image) {
-                      if (err) throw err;
-                      image.resize(32, Jimp.AUTO)
-                        .quality(80)
-                        .write(DIST_IMG_COMP + j + '.jpg');
-                    });
-                    console.log('Save compressed copy of ' + IMG_DIR + j + '.jpg to ' + DIST_IMG_COMP + j + '.jpg');
-                    obj[j].imgComp = DIST_IMG_COMP + j + '.jpg';
-                  }
-
-                  imagemin([DIST_IMG_COMP + '*.jpg'], DIST_IMG_COMP, {
-                    plugins: [
-                      imageminMozjpeg()
-                    ]
-                  }).then(files => {
-                    console.log('\nOptimized compressed JPG images with imagemin-mozjpeg.');
-                    console.log(obj);
-                  });
-                });
+                //const compressImages = require(__dirname + '/modules/compressImages')(obj);
               }
-            }
+            })
+          .catch(err => {
+            console.log(err);
           });
         }
       }
