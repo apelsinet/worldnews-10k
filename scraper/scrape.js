@@ -2,7 +2,6 @@
 const rimraf = require('rimraf');
 const fs = require('fs');
 const metascrape = require('metascrape');
-const wget = require('node-wget');
 const path = require('path');
 const fetch = require('node-fetch');
 
@@ -10,16 +9,11 @@ const fetch = require('node-fetch');
 const readChunk = require('read-chunk');
 const imageType = require('file-type');
 
-// Modules for converting images to JPG
-const JPEGEncoder = require('jpg-stream/encoder');
-const PNGDecoder = require('png-stream/decoder');
-const GIFDecoder = require('gif-stream/decoder');
-const ColorTransform = require('color-transform');
-
 const constants = require(__dirname + '/modules/constants');
 const objectCreator = require(__dirname + '/modules/objectCreator');
 const cleanFolder = require(__dirname + '/modules/cleanFolder');
 const fileExists = require(__dirname + '/modules/fileExists');
+const convertImages = require(__dirname + '/modules/convertImages');
 const compressImages = require(__dirname + '/modules/compressImages');
 
 // Initialize object to store all data.
@@ -75,13 +69,12 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
             fileType = '.png';
           }
 
-
           fetch(img)
             .then(function(res) {
               if (res.status != 200) {
                 console.log('Status: ' + res.status + ', using generic image.');
-                fs.createReadStream('./dist/not_found.png').pipe(fs.createWriteStream(constants.IMG_DIR + i));
-                return fs.readFileSync('./dist/not_found.png');
+                fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
+                return readChunk.sync('./dist/not_found.png', 0, 12);
               }
               else {
                 let dest = fs.createWriteStream(constants.IMG_DIR + i);
@@ -90,10 +83,9 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
               }
             }).then(function(buffer) {
               obj[i].imgFormat = imageType(buffer).ext;
-              fs.renameSync(constants.IMG_DIR + i, constants.IMG_DIR + i + '.' + obj[i].imgFormat);
 
-              console.log('Saved image to ' + constants.IMG_DIR + i + '.' + obj[i].imgFormat + '\n');
-              obj[i].imgPath = constants.IMG_DIR + i + '.' + obj[i].imgFormat;
+              obj = convertImages(obj, i);
+              console.log(obj[i]);
 
               articlesReceived++;
               console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.');
@@ -104,51 +96,10 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
                 console.timeEnd('Scraper finished in');
                 console.log('----------\n');
 
-                console.log('Checking image-types for ' + constants.ARTICLES_TO_SCRAPE + ' images and converting other formats to JPG.\n');
-                for(let j = 0; j < constants.ARTICLES_TO_SCRAPE; j++) {
-                  console.log('Article #' + j + '.');
-                  console.log('Image ' + j + ': ' + obj[j].imgFormat);
-
-                  if (obj[j].imgFormat == 'png') {
-                    // convert a PNG to a JPEG
-                    fs.createReadStream(constants.IMG_DIR + j + '.png')
-                      .pipe(new PNGDecoder)
-                      .pipe(new ColorTransform('rgb'))
-                      .pipe(new JPEGEncoder({quality: 80}))
-                      .pipe(fs.createWriteStream(constants.IMG_DIR + j + '.jpg'));
-                    console.log('Converted PNG to JPG. New image path: ' + constants.IMG_DIR + j + '.jpg');
-                    obj[j].imgPath = constants.IMG_DIR + j + '.jpg';
-                    obj[j].imgFormat = 'jpg';
-                    if (fileExists(constants.IMG_DIR + j + '.png')) {
-                      fs.unlinkSync(constants.IMG_DIR + j + '.png');
-                      console.log('Removed ' + constants.IMG_DIR + j + '.png');
-                    }
-                  }
-
-                  else if (obj[j].imgFormat == 'gif') {
-                    // convert a GIF to a JPEG
-                    fs.createReadStream(constants.IMG_DIR + j + '.gif')
-                      .pipe(new GIFDecoder)
-                      .pipe(new JPEGEncoder())
-                      .pipe(fs.createWriteStream(constants.IMG_DIR + j + '.jpg'));
-                    console.log('Converted GIF to JPG. New image path: ' + constants.IMG_DIR + j + '.jpg');
-                    obj[j].imgPath = constants.IMG_DIR + j + '.jpg';
-                    obj[j].imgFormat = 'jpg';
-                    if (fileExists(constants.IMG_DIR + j + '.png')) {
-                      fs.unlinkSync(constants.IMG_DIR + j + '.png');
-                      console.log('Removed ' + constants.IMG_DIR + j + '.png');
-                    }
-                  }
-                }
                 console.log('Conversion complete');
-                let p = new Promise((resolve, reject) => {
-                  obj = resolve(compressImages(obj));
-                }).then(obj => {
-                  console.log(obj);
-                }).catch(err => {
-                  console.log(err);
-                  reject(err);
-                });
+
+                obj = compressImages(obj);
+
               }
             })
           .catch(err => {
