@@ -19,7 +19,6 @@ let compressImages = (obj) => {
         imageminMozjpeg()
       ]
     }).then(files => {
-      console.log(files);
       console.log('\nOptimized JPG images with imagemin-mozjpeg.');
 
       cleanFolder(constants.DIST_IMG_FULL);
@@ -56,6 +55,7 @@ let compressImages = (obj) => {
       .catch(err => {
         console.log('Error optimizing images in ' + constants.DIST_IMG_COMP + '.');
         console.log(err);
+        reject(err);
       });
     })
     .catch(err => {
@@ -64,10 +64,11 @@ let compressImages = (obj) => {
     });
   });
   p.then(data => {
-    console.log('compressImages promise fulfilled');
+    console.log('Image compression complete.');
     return data;
   })
   .catch(err => {
+    console.log('Error fulfilling promise to compressImages.');
     console.log(err);
   });
 

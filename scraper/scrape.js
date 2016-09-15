@@ -16,45 +16,19 @@ const PNGDecoder = require('png-stream/decoder');
 const GIFDecoder = require('gif-stream/decoder');
 const ColorTransform = require('color-transform');
 
-// Modules for optimizing JPG images
-const imagemin = require('imagemin');
-const imageminMozjpeg = require('imagemin-mozjpeg');
-
-// Modules for creating low-res preview images
-const Jimp = require('jimp');
-
 const constants = require(__dirname + '/modules/constants');
+const objectCreator = require(__dirname + '/modules/objectCreator');
 const cleanFolder = require(__dirname + '/modules/cleanFolder');
+const fileExists = require(__dirname + '/modules/fileExists');
+const compressImages = require(__dirname + '/modules/compressImages');
 
-const fileExists = (filePath) => {
-  try {
-    fs.accessSync(filePath, fs.constants.F_OK)
-  }catch (err) {
-    return false;
-  }
-  return true;
-}
+// Initialize object to store all data.
+let obj = objectCreator();
 
-let obj = [];
-function article(id, url, title, desc, comUrl, comCount, imgPath, imgFormat, imgFull, imgComp) {
-  this.id = id;
-  this.url = url;
-  this.title = title;
-  this.desc = desc;
-  this.comUrl = comUrl;
-  this.comCount = comCount;
-  this.imgPath = imgPath;
-  this.imgFormat = imgFormat;
-  this.imgFull = imgFull;
-  this.imgComp = imgComp;
-}
 console.log('Scraper started.');
 console.time('Scraper finished in');
 
-console.log('Rimraf:\n' + constants.IMG_DIR);
-rimraf.sync(constants.IMG_DIR);
-console.log('Make dir:\n' + constants.IMG_DIR);
-fs.mkdirSync(constants.IMG_DIR);
+cleanFolder(constants.IMG_DIR);
 
 fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_SCRAPE)
 .then(function(res) {
@@ -65,11 +39,8 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
     metascrape.fetch(json.data.children[i].data.url, 1000).then((response) => {
       for (type in response) {
         if (type == 'openGraph') {
-          obj[i] = new article(i);
-
           obj[i].url = json.data.children[i].data.url;
           obj[i].title = json.data.children[i].data.title;
-
           if (response[type].description != undefined) {
             // Trim whitespace and newlines from string.
             obj[i].desc = response[type].description.trim();
@@ -78,7 +49,6 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
             console.log('Article description for article #' + i + ' not found. Using empty string.');
             obj[i].desc = '';
           }
-
           obj[i].comUrl = 'https://www.reddit.com' + json.data.children[i].data.permalink;
           obj[i].comCount = json.data.children[i].data.num_comments;
 
@@ -111,7 +81,7 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
               if (res.status != 200) {
                 console.log('Status: ' + res.status + ', using generic image.');
                 fs.createReadStream('./dist/not_found.png').pipe(fs.createWriteStream(constants.IMG_DIR + i));
-                return fs.readFileSync('./dist/not_found.png')
+                return fs.readFileSync('./dist/not_found.png');
               }
               else {
                 let dest = fs.createWriteStream(constants.IMG_DIR + i);
@@ -144,7 +114,7 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
                     fs.createReadStream(constants.IMG_DIR + j + '.png')
                       .pipe(new PNGDecoder)
                       .pipe(new ColorTransform('rgb'))
-                      .pipe(new JPEGEncoder())
+                      .pipe(new JPEGEncoder({quality: 80}))
                       .pipe(fs.createWriteStream(constants.IMG_DIR + j + '.jpg'));
                     console.log('Converted PNG to JPG. New image path: ' + constants.IMG_DIR + j + '.jpg');
                     obj[j].imgPath = constants.IMG_DIR + j + '.jpg';
@@ -170,7 +140,15 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
                     }
                   }
                 }
-                //const compressImages = require(__dirname + '/modules/compressImages')(obj);
+                console.log('Conversion complete');
+                let p = new Promise((resolve, reject) => {
+                  obj = resolve(compressImages(obj));
+                }).then(obj => {
+                  console.log(obj);
+                }).catch(err => {
+                  console.log(err);
+                  reject(err);
+                });
               }
             })
           .catch(err => {
