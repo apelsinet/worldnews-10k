@@ -8,7 +8,7 @@ const fetch = require('node-fetch');
 
 // Modules for image-type checker
 const readChunk = require('read-chunk');
-const imageType = require('image-type');
+const imageType = require('file-type');
 
 // Modules for converting images to JPG
 const JPEGEncoder = require('jpg-stream/encoder');
@@ -26,9 +26,17 @@ const Jimp = require('jimp');
 const constants = require(__dirname + '/modules/constants');
 const cleanFolder = require(__dirname + '/modules/cleanFolder');
 
+const fileExists = (filePath) => {
+  try {
+    fs.accessSync(filePath, fs.constants.F_OK)
+  }catch (err) {
+    return false;
+  }
+  return true;
+}
 
 let obj = [];
-function article(id, url, title, desc, comUrl, comCount, imgPath, imgFull, imgComp) {
+function article(id, url, title, desc, comUrl, comCount, imgPath, imgFormat, imgFull, imgComp) {
   this.id = id;
   this.url = url;
   this.title = title;
@@ -36,6 +44,7 @@ function article(id, url, title, desc, comUrl, comCount, imgPath, imgFull, imgCo
   this.comUrl = comUrl;
   this.comCount = comCount;
   this.imgPath = imgPath;
+  this.imgFormat = imgFormat;
   this.imgFull = imgFull;
   this.imgComp = imgComp;
 }
@@ -99,21 +108,26 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
 
           fetch(img)
             .then(function(res) {
-              if (res.status == 404 || res.status == 403) {
+              if (res.status != 200) {
                 console.log('Status: ' + res.status + ', using generic image.');
-                fs.createReadStream('./dist/not_found.png').pipe(fs.createWriteStream(constants.IMG_DIR + i + '.png'));
-                fileType = '.png';
+                fs.createReadStream('./dist/not_found.png').pipe(fs.createWriteStream(constants.IMG_DIR + i));
+                return fs.readFileSync('./dist/not_found.png')
               }
               else {
-                var dest = fs.createWriteStream(constants.IMG_DIR + i + fileType);
+                let dest = fs.createWriteStream(constants.IMG_DIR + i);
                 res.body.pipe(dest);
+                return res.buffer();
               }
+            }).then(function(buffer) {
+              obj[i].imgFormat = imageType(buffer).ext;
+              fs.renameSync(constants.IMG_DIR + i, constants.IMG_DIR + i + '.' + obj[i].imgFormat);
 
-              console.log('Saved image to ' + constants.IMG_DIR + i + fileType + '\n');
-              obj[i].imgPath = constants.IMG_DIR + i + fileType;
+              console.log('Saved image to ' + constants.IMG_DIR + i + '.' + obj[i].imgFormat + '\n');
+              obj[i].imgPath = constants.IMG_DIR + i + '.' + obj[i].imgFormat;
 
               articlesReceived++;
               console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.');
+              console.log('----------\n');
 
               if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
                 console.log('\n----------');
@@ -122,12 +136,10 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
 
                 console.log('Checking image-types for ' + constants.ARTICLES_TO_SCRAPE + ' images and converting other formats to JPG.\n');
                 for(let j = 0; j < constants.ARTICLES_TO_SCRAPE; j++) {
-                  let buffer;
                   console.log('Article #' + j + '.');
-                  buffer = readChunk.sync(obj[j].imgPath, 0, 12);
-                  console.log('Image ' + j + ': ' + imageType(buffer).ext);
+                  console.log('Image ' + j + ': ' + obj[j].imgFormat);
 
-                  if (imageType(buffer).ext == 'png') {
+                  if (obj[j].imgFormat == 'png') {
                     // convert a PNG to a JPEG
                     fs.createReadStream(constants.IMG_DIR + j + '.png')
                       .pipe(new PNGDecoder)
@@ -136,13 +148,14 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
                       .pipe(fs.createWriteStream(constants.IMG_DIR + j + '.jpg'));
                     console.log('Converted PNG to JPG. New image path: ' + constants.IMG_DIR + j + '.jpg');
                     obj[j].imgPath = constants.IMG_DIR + j + '.jpg';
-                    if (fileType == '.png') {
+                    obj[j].imgFormat = 'jpg';
+                    if (fileExists(constants.IMG_DIR + j + '.png')) {
                       fs.unlinkSync(constants.IMG_DIR + j + '.png');
-                      console.log('Removed old PNG file.');
+                      console.log('Removed ' + constants.IMG_DIR + j + '.png');
                     }
                   }
 
-                  else if (imageType(buffer).ext == 'gif') {
+                  else if (obj[j].imgFormat == 'gif') {
                     // convert a GIF to a JPEG
                     fs.createReadStream(constants.IMG_DIR + j + '.gif')
                       .pipe(new GIFDecoder)
@@ -150,9 +163,10 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
                       .pipe(fs.createWriteStream(constants.IMG_DIR + j + '.jpg'));
                     console.log('Converted GIF to JPG. New image path: ' + constants.IMG_DIR + j + '.jpg');
                     obj[j].imgPath = constants.IMG_DIR + j + '.jpg';
-                    if (fileType == '.gif') {
-                      fs.unlinkSync(constants.IMG_DIR + j + '.gif');
-                      console.log('Removed old GIF file.');
+                    obj[j].imgFormat = 'jpg';
+                    if (fileExists(constants.IMG_DIR + j + '.png')) {
+                      fs.unlinkSync(constants.IMG_DIR + j + '.png');
+                      console.log('Removed ' + constants.IMG_DIR + j + '.png');
                     }
                   }
                 }
