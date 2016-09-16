@@ -63,9 +63,9 @@ let compressImages = (obj) => {
       console.log(err);
     });
   });
-  p.then(data => {
+  p.then(obj => {
     console.log('Image compression complete.');
-    return data;
+    return obj;
   })
   .catch(err => {
     console.log('Error fulfilling promise to compressImages.');
