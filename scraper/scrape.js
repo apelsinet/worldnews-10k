@@ -23,63 +23,71 @@ console.log('Scraper started.');
 console.time('Scraper finished in');
 cleanFolder(constants.IMG_DIR);
 
-fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_SCRAPE)
+fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES)
 .then(function(res) {
   return res.json();
 }).then(function(json) {
-  let articlesReceived = 0;
+  let articlesReceived = 0,
+  scrapeExtraArticle = 0;
   for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
-    metascrape.fetch(json.data.children[i].data.url, 1000).then((response) => {
-      for (type in response) {
-        if (type == 'openGraph') {
-          obj = storeArticleData(obj, json, response[type], i);
-          const img = sanitizeImageURL(response[type].image);
+    let scrapePromise = new Promise((resolve, reject) => {
+      const scrapeArticle = (url, i) => {
+        metascrape.fetch(url, 1000).then((response) => {
+          for (type in response) {
+            if (type == 'openGraph') {
+              obj = storeArticleData(obj, json, response[type], i);
+              const img = sanitizeImageURL(response[type].image);
+              fetch(img)
+                .then(function(res) {
+                  if (res.status != 200) {
+                    console.log('Status: ' + res.status + '. Using generic image.');
+                    fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
+                    return readChunk.sync('./dist/not_found.png', 0, 12);
+                  }
+                  else {
+                    res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
+                    return res.buffer();
+                  }
+                }).then(function(buffer) {
+                  obj[i].imgFormat = imageType(buffer).ext;
+                  obj = convertImages(obj, i);
+                  console.log(obj[i]);
+                  resolve(i);
+                })
+              .catch(err => {
+                console.log('Could not fetch or store image: ' + img);
+                console.log(err);
+              });
+            }
+          }
+        })
+        .catch(err => {
+          console.log('Could not scrape data from: ' + json.data.children[i].data.url);
+          console.log(err);
+          reject(i);
+        });
+      }
+    scrapeArticle(json.data.children[i].data.url, i);
+    });
+    scrapePromise.then(i => {
+      articlesReceived++;
+      console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.');
+      console.log('----------\n');
 
-          fetch(img)
-            .then(function(res) {
-              if (res.status != 200) {
-                console.log('Status: ' + res.status + '. Using generic image.');
-                fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
-                return readChunk.sync('./dist/not_found.png', 0, 12);
-              }
-              else {
-                res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
-                return res.buffer();
-              }
-            }).then(function(buffer) {
-              obj[i].imgFormat = imageType(buffer).ext;
+      if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
+        console.log('\n----------');
+        console.timeEnd('Scraper finished in');
+        console.log('----------\n');
 
-              obj = convertImages(obj, i);
-              console.log(obj[i]);
-
-              articlesReceived++;
-              console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.');
-              console.log('----------\n');
-
-              if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
-                console.log('\n----------');
-                console.timeEnd('Scraper finished in');
-                console.log('----------\n');
-
-                /*let pr = compressImages(obj);
-                pr.then(returnedObj => {
-                  console.log(returnedObj);
-                }).catch(err => {
-                  console.log('Could not resolve promise to compressImages.');
-                  console.log(err);
-                });*/
-              }
-            })
-          .catch(err => {
-            console.log('Could not fetch or store image: ' + img);
-            console.log(err);
-          });
-        }
+        obj = compressImages(obj);
+        console.log(obj);
       }
     })
-    .catch(err => {
-      console.log('Could not scrape data from: ' + json.data.children[i].data.url);
-      console.log(err);
+    .catch(i => {
+      // Catch unscraped article and try to fill object entry with a new article.
+      scrapeExtraArticle++;
+      console.log('\n\nScraping extra article.\n\n');
+      scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
     });
   }
 })

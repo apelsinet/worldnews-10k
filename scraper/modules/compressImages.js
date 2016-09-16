@@ -10,10 +10,10 @@ const imageminMozjpeg = require('imagemin-mozjpeg');
 // Module to create low-res preview images
 const Jimp = require('jimp');
 
-let compressImages = (obj) => {
 
-  let p = new Promise((resolve, reject) => {
+let p = new Promise((resolve, reject) => {
 
+  let compressImages = (obj) => {
     imagemin([constants.IMG_DIR + '*.jpg'], constants.IMG_DIR, {
       plugins: [
         imageminMozjpeg()
@@ -62,17 +62,17 @@ let compressImages = (obj) => {
       console.log('Error optimizing images in ' + constants.IMG_DIR + '.');
       console.log(err);
     });
-  });
-  p.then(obj => {
-    console.log('Image compression complete.');
-    return obj;
-  })
-  .catch(err => {
-    console.log('Error fulfilling promise to compressImages.');
-    console.log(err);
-  });
+  }
+  module.exports = compressImages;
+});
+p.then(obj => {
+  console.log('Image compression complete.');
+  return obj;
+})
+.catch(err => {
+  console.log('Error fulfilling promise to compressImages.');
+  console.log(err);
+});
 
-}
 
-module.exports = compressImages;
 
