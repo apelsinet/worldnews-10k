@@ -1,6 +1,6 @@
 const path = require('path');
 
-const sanitizeImageURL = (imgURL) => {
+const sanitizeImageURL = (imgURL, i) => {
   let img = '';
   if (imgURL != undefined) {
     img = imgURL;

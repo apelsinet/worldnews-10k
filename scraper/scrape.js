@@ -36,7 +36,7 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
           for (type in response) {
             if (type == 'openGraph') {
               obj = storeArticleData(obj, json, response[type], i);
-              const img = sanitizeImageURL(response[type].image);
+              const img = sanitizeImageURL(response[type].image, i);
               fetch(img)
                 .then(function(res) {
                   if (res.status != 200) {
@@ -57,6 +57,7 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
               .catch(err => {
                 console.log('Could not fetch or store image: ' + img);
                 console.log(err);
+                reject(i);
               });
             }
           }
@@ -86,7 +87,8 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
     .catch(i => {
       // Catch unscraped article and try to fill object entry with a new article.
       scrapeExtraArticle++;
-      console.log('\n\nScraping extra article.\n\n');
+      console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
+      console.log('Using new article with URL: ' + json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url);
       scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
     });
   }
