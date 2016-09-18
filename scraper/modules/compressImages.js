@@ -11,9 +11,9 @@ const imageminMozjpeg = require('imagemin-mozjpeg');
 const Jimp = require('jimp');
 
 
-let p = new Promise((resolve, reject) => {
 
-  let compressImages = (obj) => {
+const CompressImages = {
+  inputObject: (obj) => new Promise((resolve, reject) => {
     imagemin([constants.IMG_DIR + '*.jpg'], constants.IMG_DIR, {
       plugins: [
         imageminMozjpeg()
@@ -50,29 +50,21 @@ let p = new Promise((resolve, reject) => {
         else {
           console.log('\nCould not compress JPG images further.');
         }
+        console.log('Image compression complete.');
         resolve(obj);
       })
       .catch(err => {
         console.log('Error optimizing images in ' + constants.DIST_IMG_COMP + '.');
         console.log(err);
-        reject(err);
+        reject(obj);
       });
     })
     .catch(err => {
       console.log('Error optimizing images in ' + constants.IMG_DIR + '.');
       console.log(err);
+      reject(obj);
     });
-  }
-  module.exports = compressImages;
-});
-p.then(obj => {
-  console.log('Image compression complete.');
-  return obj;
-})
-.catch(err => {
-  console.log('Error fulfilling promise to compressImages.');
-  console.log(err);
-});
+  })
+}
 
-
-
+module.exports = CompressImages;

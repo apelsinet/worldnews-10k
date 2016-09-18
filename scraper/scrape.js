@@ -80,15 +80,19 @@ fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_
         console.timeEnd('Scraper finished in');
         console.log('----------\n');
 
-        obj = compressImages(obj);
-        console.log(obj);
+        compressImages.inputObject(obj).then(result => {
+          console.log(result);
+        }).catch(err => {
+          console.log(err);
+        });
+
+          
       }
     })
     .catch(i => {
       // Catch unscraped article and try to fill object entry with a new article.
       scrapeExtraArticle++;
       console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
-      console.log('Using new article with URL: ' + json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url);
       scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
     });
   }
