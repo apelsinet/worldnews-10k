@@ -1,8 +1,7 @@
 // Modules for scraper
 const fs = require('fs');
-const metascrape = require('metascrape');
+const metascraper = require('metascraper');
 const fetch = require('node-fetch');
-const ProgressBar = require('progress');
 
 // Modules for image-type checker
 const readChunk = require('read-chunk');
@@ -24,7 +23,7 @@ const Scraper = {
     // Initialize object to store all data.
     let obj = objectCreator();
 
-    console.log('Scraper started.');
+    console.log('Scraper started.\n');
     console.time('Scraper finished in');
 
     let scraperPromise = new Promise((scraperResolve, scraperReject) => {
@@ -45,58 +44,38 @@ const Scraper = {
 
               const scrapeArticle = (url, i) => {
 
-                console.log('Scraping: ' + i + ' ...');
-                metascrape.fetch(url).then((metascrapeResponse) => {
+                metascraper.scrapeUrl(url).then((metaData) => {
 
-                  console.log('Scraped: ' + i);
-                  if (metascrapeResponse['openGraph'] != undefined) {
+                  obj = storeArticleData(obj, json, metaData, i);
+                  const img = sanitizeImageURL(metaData.image, i);
+                  fetch(img)
+                    .then(res => {
 
-                    obj = storeArticleData(obj, json, metascrapeResponse['openGraph'], i);
-                    const img = sanitizeImageURL(metascrapeResponse['openGraph'].image, i);
-                    fetch(img)
-                      .then(res => {
+                      if (res.status != 200) {
+                        console.log('Status: ' + res.status + '. Using generic image.');
+                        fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
+                        return readChunk.sync('./dist/not_found.png', 0, 12);
+                      }
+                      else {
+                        res.body.on('error', err => {
+                          console.log('Error fetching image: ' + i + '.\n' + err);
+                          articleReject(i);
+                        });
+                        res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
+                        return res.buffer();
+                      }
 
-                        if (res.status != 200) {
-                          console.log('Status: ' + res.status + '. Using generic image.');
-                          fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
-                          return readChunk.sync('./dist/not_found.png', 0, 12);
-                        }
-                        else {
-                          let bar = new ProgressBar('  downloading [:bar] :percent :etas', {
-                            complete: '=',
-                            incomplete: ' ',
-                            width: 20,
-                            total: parseInt(res.headers.get('content-length'), 10)
-                          });
-                          res.body.on('error', err => {
-                            console.log('Error fetching image: ' + i + '.\n' + err);
-                            articleReject(i);
-                          });
-                          res.body.on('data', chunk => {
-                            bar.tick(chunk.length);
-                          });
-                          res.body.on('end', () => {
-                            console.log('\n');
-                          });
-                          res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
-                          return res.buffer();
-                        }
+                    }).then(buffer => {
+                      obj[i].imgFormat = imageType(buffer).ext;
+                      obj = convertImages(obj, i);
+                      articleResolve(i);
+                    }).catch(err => {
+                      console.log('Could not fetch or store image: ' + img);
+                      console.log(err);
+                      articleReject(i);
+                    });
 
-                      }).then(buffer => {
-                        obj[i].imgFormat = imageType(buffer).ext;
-                        obj = convertImages(obj, i);
-                        articleResolve(i);
-                      }).catch(err => {
-                        console.log('Could not fetch or store image: ' + img);
-                        console.log(err);
-                        articleReject(i);
-                      });
 
-                  }
-                  else {
-                    console.log('No openGraph meta data found.');
-                    articleReject(i);
-                  }
 
                 }).catch(err => {
                   console.log('Could not scrape data from: ' + json.data.children[i].data.url);
@@ -112,8 +91,7 @@ const Scraper = {
 
             articlePromise.then(i => {
               articlesReceived++;
-              console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.');
-              console.log('----------\n');
+              console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.\n');
 
               if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
                 compressImages.inputObject(obj).then(result => {

@@ -19,7 +19,7 @@ const CompressImages = {
         imageminMozjpeg()
       ]
     }).then(files => {
-      console.log('\nOptimized JPG images with imagemin-mozjpeg.');
+      console.log('Optimized JPG images with imagemin-mozjpeg.\n');
 
       cleanFolder(constants.DIST_IMG_FULL);
       cleanFolder(constants.DIST_IMG_COMP);
@@ -45,12 +45,12 @@ const CompressImages = {
         ]
       }).then(files => {
         if (files != '') {
-          console.log('\nOptimized compressed JPG images with imagemin-mozjpeg.');
+          console.log('\nOptimized compressed JPG images with imagemin-mozjpeg.\n');
         }
         else {
-          console.log('\nCould not compress JPG images further.');
+          console.log('\nCould not compress JPG images further.\n');
         }
-        console.log('Image compression complete.');
+        console.log('Image compression complete.\n');
         resolve(obj);
       })
       .catch(err => {
