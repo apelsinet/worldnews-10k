@@ -26,7 +26,15 @@ h3
 p,.ti
   font-family: sans-serif
 
-section
+a, a:visited
+  text-decoration: none
+  color: $dark
+  padding-bottom: 2px
+  border-bottom: 0.1em solid white
+a:hover
+  border-bottom: 0.1em solid $dark
+
+section, aside
   padding: 1em
 .mh
   border-bottom: 1px dotted $dark
@@ -43,34 +51,29 @@ section
       position: relative
       top: -1px
 
-.fe
-  display: table
-  border-bottom: 2px solid $dark
-  border-collapse: collapse
-  .l
-    float: left
-    overflow: hidden
-    min-width: 50%
-    img
-      width: 100%
-      height: auto
-  .r
-    float: right
-    max-width: 50%
-  .l,.r
-    display: table-cell
-    @media (max-width: 500px)
-      display: block
-      width: 100%
-      max-width: 100%
+.co
+  margin-bottom: 1em
+  font-style: italic
 
+.fe
+  border-bottom: 2px solid $dark
+  .i
+    width: 50%
+    height: auto
+    float: left
+    margin-right: 1em
+    overflow: hidden
+    @media (max-width: 700px)
+      width: 100%
+      margin-bottom: 1em
+  
 .c1,.c2,.c3
   width: 33.3%
   float: left
   margin: 1em 0 1em 0
-.c1,.c2
-  border-right: 1px dotted $dark
-.i
+  section
+    border-bottom: 1px dotted $dark
+.i, .fe
   overflow: hidden
 
 @media (max-width: 700px)
