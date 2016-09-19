@@ -8,6 +8,7 @@ const ProgressBar = require('progress');
 const readChunk = require('read-chunk');
 const imageType = require('file-type');
 
+// Internal modules
 const constants = require(__dirname + '/modules/constants');
 const objectCreator = require(__dirname + '/modules/objectCreator');
 const cleanFolder = require(__dirname + '/modules/cleanFolder');
@@ -17,81 +18,99 @@ const fileExists = require(__dirname + '/modules/fileExists');
 const convertImages = require(__dirname + '/modules/convertImages');
 const compressImages = require(__dirname + '/modules/compressImages');
 
-const stream = require('stream');
-
-//const pug = require('pug');
-
 const Scraper = {
+
   run: () => new Promise((resolve, reject) => {
     // Initialize object to store all data.
     let obj = objectCreator();
 
     console.log('Scraper started.');
     console.time('Scraper finished in');
-    let scraperPromise = new Promise((resolve, reject) => {
+
+    let scraperPromise = new Promise((scraperResolve, scraperReject) => {
+
       cleanFolder(constants.IMG_DIR);
 
       fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES)
-        .then(function(res) {
-          return res.json();
-        }).then(function(json) {
+        .then(jsonResponse => {
+          return jsonResponse.json();
+        }).then(json => {
+
           let articlesReceived = 0,
           scrapeExtraArticle = 0;
-          for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
-            let scrapePromise = new Promise((resolve, reject) => {
-              const scrapeArticle = (url, i) => {
-                metascrape.fetch(url, 1000).then((response) => {
-                  if (response['openGraph'] != undefined) {
-                    obj = storeArticleData(obj, json, response['openGraph'], i);
-                    const img = sanitizeImageURL(response['openGraph'].image, i);
-                    fetch(img)
-                      .then(function(res) {
-                        let bar = new ProgressBar('  downloading [:bar] :percent :etas', {
-                          complete: '=',
-                          incomplete: ' ',
-                          width: 20,
-                          total: parseInt(res.headers.get('content-length'), 10)
-                        });
-                        res.body.on('data', function (chunk) {
-                          bar.tick(chunk.length);
-                        });
 
-                        res.body.on('end', function () {
-                          console.log('\n');
-                        });
+          for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
+
+            let articlePromise = new Promise((articleResolve, articleReject) => {
+
+              const scrapeArticle = (url, i) => {
+
+                console.log('Scraping: ' + i + ' ...');
+                metascrape.fetch(url).then((metascrapeResponse) => {
+
+                  console.log('Scraped: ' + i);
+                  if (metascrapeResponse['openGraph'] != undefined) {
+
+                    obj = storeArticleData(obj, json, metascrapeResponse['openGraph'], i);
+                    const img = sanitizeImageURL(metascrapeResponse['openGraph'].image, i);
+                    fetch(img)
+                      .then(res => {
+
                         if (res.status != 200) {
                           console.log('Status: ' + res.status + '. Using generic image.');
                           fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
                           return readChunk.sync('./dist/not_found.png', 0, 12);
                         }
                         else {
+                          let bar = new ProgressBar('  downloading [:bar] :percent :etas', {
+                            complete: '=',
+                            incomplete: ' ',
+                            width: 20,
+                            total: parseInt(res.headers.get('content-length'), 10)
+                          });
+                          res.body.on('error', err => {
+                            console.log('Error fetching image: ' + i + '.\n' + err);
+                            articleReject(i);
+                          });
+                          res.body.on('data', chunk => {
+                            bar.tick(chunk.length);
+                          });
+                          res.body.on('end', () => {
+                            console.log('\n');
+                          });
                           res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
                           return res.buffer();
                         }
-                      }).then(function(buffer) {
+
+                      }).then(buffer => {
                         obj[i].imgFormat = imageType(buffer).ext;
                         obj = convertImages(obj, i);
-                        resolve(i);
-                      })
-                    .catch(err => {
-                      console.log('Could not fetch or store image: ' + img);
-                      console.log(err);
-                      reject(i);
-                    });
+                        articleResolve(i);
+                      }).catch(err => {
+                        console.log('Could not fetch or store image: ' + img);
+                        console.log(err);
+                        articleReject(i);
+                      });
+
                   }
                   else {
-                    reject('No openGraph data found.');
+                    console.log('No openGraph meta data found.');
+                    articleReject(i);
                   }
-                })
-                .catch(err => {
+
+                }).catch(err => {
                   console.log('Could not scrape data from: ' + json.data.children[i].data.url);
                   console.log(err);
-                  reject(i);
+                  articleReject(i);
                 });
+
               }
+
               scrapeArticle(json.data.children[i].data.url, i);
+
             });
-            scrapePromise.then(i => {
+
+            articlePromise.then(i => {
               articlesReceived++;
               console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.');
               console.log('----------\n');
@@ -99,30 +118,30 @@ const Scraper = {
               if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
                 compressImages.inputObject(obj).then(result => {
                   obj = result;
-                  resolve(obj);
+                  scraperResolve(obj);
                 }).catch(err => {
                   console.log(err);
-                  reject(err);
+                  scraperReject(err);
                 });
               }
-            })
-            .catch(i => {
+
+            }).catch(i => {
               // Catch unscraped article and try to fill object entry with a new article.
               scrapeExtraArticle++;
               console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
               scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
             });
-          }
-        })
-      .catch(err => {
-        console.log('Could not fetch WorldNews json.');
-        console.log(err);
-      });
-    }).then(obj => {
-      //console.log(obj);
 
+          } // for loop
 
+        }).catch(err => {
+          console.log('Could not fetch WorldNews json.');
+          console.log(err);
+        });
 
+    });
+
+    scraperPromise.then(obj => {
       console.log('\n----------');
       console.timeEnd('Scraper finished in');
       console.log('----------\n');
@@ -132,7 +151,8 @@ const Scraper = {
       console.log(err);
       reject(err);
     });
-  })
+
+  }) // module promise
 }
 
 module.exports = Scraper;
