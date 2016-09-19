@@ -3,12 +3,16 @@ var router = express.Router();
 const scraper = require('../scraper/scrape');
 
 let obj;
-scraper.run().then(result => {
-  obj = result;
-})
-.catch(err => {
-  console.log(err);
-});
+const minutes = 1, scraperInterval = minutes * 60 * 1000;
+setInterval(() => {
+  scraper.run().then(result => {
+    obj = result;
+  })
+  .catch(err => {
+    console.log(err);
+  });
+}, scraperInterval);
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', {
