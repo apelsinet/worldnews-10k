@@ -8,7 +8,7 @@ block content
     main
       .fe
         .i
-          img(src="c/0.jpg").blur
+          img(src="c/0.jpg", id="0").blur
         aside
           a(href=a0url) 
             h2 #{a0title}
@@ -19,7 +19,7 @@ block content
         .c1
           section
             .i
-              img(src="c/1.jpg").blur
+              img(src="c/1.jpg", id="1").blur
             a(href=a1url) 
               h3 #{a1title}
               p #{a1desc}
@@ -27,7 +27,7 @@ block content
               .co #{a1comCount} comments
           section
             .i
-              img(src="c/2.jpg").blur
+              img(src="c/2.jpg", id="2").blur
             a(href=a2url) 
               h3 #{a2title}
               p #{a2desc}
@@ -35,7 +35,7 @@ block content
               .co #{a2comCount} comments
           section
             .i
-              img(src="c/3.jpg").blur
+              img(src="c/3.jpg", id="3").blur
             a(href=a3url) 
               h3 #{a3title}
               p #{a3desc}
@@ -44,7 +44,7 @@ block content
         .c2
           section
             .i
-              img(src="c/4.jpg").blur
+              img(src="c/4.jpg", id="4").blur
             a(href=a4url) 
               h3 #{a4title}
               p #{a4desc}
@@ -52,7 +52,7 @@ block content
               .co #{a4comCount} comments
           section
             .i
-              img(src="c/5.jpg").blur
+              img(src="c/5.jpg", id="5").blur
             a(href=a5url) 
               h3 #{a5title}
               p #{a5desc}
@@ -60,7 +60,7 @@ block content
               .co #{a5comCount} comments
           section
             .i
-              img(src="c/6.jpg").blur
+              img(src="c/6.jpg", id="6").blur
             a(href=a6url) 
               h3 #{a6title}
               p #{a6desc}
@@ -69,7 +69,7 @@ block content
         .c3
           section
             .i
-              img(src="c/7.jpg").blur
+              img(src="c/7.jpg", id="7").blur
             a(href=a7url) 
               h3 #{a7title}
               p #{a7desc}
@@ -77,7 +77,7 @@ block content
               .co #{a7comCount} comments
           section
             .i
-              img(src="c/8.jpg").blur
+              img(src="c/8.jpg", id="8").blur
             a(href=a8url) 
               h3 #{a8title}
               p #{a8desc}
@@ -85,9 +85,10 @@ block content
               .co #{a8comCount} comments
           section
             .i
-              img(src="c/9.jpg").blur
+              img(src="c/9.jpg", id="9").blur
             a(href=a9url) 
               h3 #{a9title}
               p #{a9desc}
             a(href=a9comUrl) 
               .co #{a9comCount} comments
+    script(src='/js/lazyLoad.js', type='text/javascript')
