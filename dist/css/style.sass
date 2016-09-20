@@ -1,4 +1,7 @@
-$dark: #333
+$dark: #403727
+$light: #F2E0BD
+$teal: #63A687
+$red: #D92B2B
 *
   margin: 0
   padding: 0
@@ -11,52 +14,52 @@ html
 
 body
   font: 18px serif
+  @media (min-width: 1025px)
+    font-size: 24px
+  @media (min-width: 1200px)
+    font-size: 28px
   color: $dark
 
 h1
-  font-size: 10vw
+  font-size: 1.777em
+  text-align: center
 h2
-  font-size: 6.2vw
+  font-size: 1.333em
 h3
-  font-size: 2.4vw
+  font-size: 1em
+  font-weight: 700
   margin: 0.2em 0 0.2em
-  @media (max-width: 700px)
-    font-size: 3.8vw
-
-p,.ti
+p, .co
+  font-size: 0.75em
   font-family: sans-serif
 
 a, a:visited
   text-decoration: none
   color: $dark
   padding-bottom: 2px
-  border-bottom: 0.1em solid white
 a:hover
-  border-bottom: 0.1em solid $dark
+  h2,h3
+    color: $teal
 
 section, aside
   margin: 1em
 .mh
-  border-bottom: 1px dotted $dark
+  border-bottom: 1px solid $light
   padding: 1em
 
-.ti
-  height: 1.2em
-  border-bottom: 2px solid $dark
-  text-transform: uppercase
-  li
-    display: inline
-    &:before
-      content: " » "
-      position: relative
-      top: -1px
-
 .co
-  margin-bottom: 1em
-  font-style: italic
+  margin: 1em auto 1.777em auto
+  padding: 0.422em
+  max-width: 9.969em
+  border-radius: 0.422em
+  background-color: $dark
+  color: $light
+  text-align: center
+  &:hover
+    background-color: $red
 
 .fe
-  border-bottom: 2px solid $dark
+  border-bottom: 1px solid $light
   .i
     width: 50%
     height: auto
@@ -68,33 +71,41 @@ section, aside
   p
     clear: both
   
+
+  
 .c1,.c2,.c3
-  width: 33.3%
   float: left
-  margin: 1em 0 1em 0
+.c1,.c2
+  width: 49.9%
+.c1
   section
-    padding-bottom: 0.5em
-    border-bottom: 1px dotted $dark
+    margin-right: 0.5em
+.c2
+  section
+    margin-left: 0.5em
+.c3
+  width: 100%
+  section
+    border-top: 1px solid $light
+  .i
+    display: none
+
+@media (min-width: 700px)
+  .c1,.c2,.c3
+    width: 33.3%
+  .c2
+    section
+      margin-right: 0.5em
+  .c3
+    section
+      margin-left: 0.5em
+    .i
+      display: block
+.i
+  min-height: 5.61em
 .i, .fe
   overflow: hidden
 
-@media (max-width: 700px)
-  .c1,.c2
-    width: 49.9%
-    section
-      border: none
-  .c3
-    width: 100%
-    section
-      border-top: 1px dotted $dark
-    .i
-      display: none
-  .c2
-    border: none
-  .gr p
-    font-size: 0.7em
-  .i
-    min-height: 5em
 .blur
   width: 100%
   height: 100%
