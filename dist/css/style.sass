@@ -35,7 +35,7 @@ a:hover
   border-bottom: 0.1em solid $dark
 
 section, aside
-  padding: 1em
+  margin: 1em
 .mh
   border-bottom: 1px dotted $dark
   padding: 1em
@@ -61,17 +61,19 @@ section, aside
     width: 50%
     height: auto
     float: left
-    margin-right: 1em
+    margin: 1em
     overflow: hidden
     @media (max-width: 700px)
-      width: 100%
-      margin-bottom: 1em
+      width: calc(100% - 2em)
+  p
+    clear: both
   
 .c1,.c2,.c3
   width: 33.3%
   float: left
   margin: 1em 0 1em 0
   section
+    padding-bottom: 0.5em
     border-bottom: 1px dotted $dark
 .i, .fe
   overflow: hidden
@@ -79,6 +81,8 @@ section, aside
 @media (max-width: 700px)
   .c1,.c2
     width: 49.9%
+    section
+      border: none
   .c3
     width: 100%
     section

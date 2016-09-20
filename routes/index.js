@@ -3,7 +3,17 @@ var router = express.Router();
 const scraper = require('../scraper/scrape');
 
 let obj;
-const minutes = 1, scraperInterval = minutes * 60 * 1000;
+
+// Run scraper first time when starting server.
+scraper.run().then(result => {
+  obj = result;
+})
+.catch(err => {
+  console.log(err);
+});
+
+const minutes = 5, scraperInterval = minutes * 60 * 1000;
+// Run scraper every x minutes.
 setInterval(() => {
   scraper.run().then(result => {
     obj = result;
