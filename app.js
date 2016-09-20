@@ -5,7 +5,6 @@ const favicon = require('serve-favicon');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const expressUglify = require('express-uglify');
 
 const routes = require('./routes/index');
 const users = require('./routes/users');
@@ -30,10 +29,6 @@ app.use(require('node-sass-middleware')({
   indentedSyntax: true,
   sourceMap: true,
   outputStyle: 'compressed'
-}));
-app.use(expressUglify.middleware({ 
-  src: __dirname + '/dist',
-  logLevel: 'info'
 }));
 app.use(express.static(path.join(__dirname, 'dist'), {maxAge: CACHE_TIME}));
 
