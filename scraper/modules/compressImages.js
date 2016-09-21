@@ -32,7 +32,7 @@ const CompressImages = {
           Jimp.read(constants.IMG_DIR + j + '.jpg', function (err, image) {
             if (err) throw err;
             image.resize(640, Jimp.AUTO)
-              .quality(80)
+              .quality(70)
               .write(constants.DIST_IMG_FULL + j + '.jpg');
             image.resize(16, Jimp.AUTO)
               .rgba(false)

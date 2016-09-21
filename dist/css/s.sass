@@ -33,7 +33,6 @@ h2
   font-size: 1.333em
 h3
   font-size: 1em
-  font-weight: 700
   margin: 0.238em 0 0.238em
 p, .co
   font-size: 0.75em
@@ -42,14 +41,14 @@ p, .co
 a, a:visited
   text-decoration: none
   color: $dark
-  padding-bottom: 2px
 a:hover
   h2,h3
     color: $teal
 
 section, aside
   margin: 1em
-.mh
+
+header
   border-top: 0.238em solid $teal
   border-bottom: 1px solid $light
   padding: 1em
@@ -75,6 +74,8 @@ section, aside
     overflow: hidden
     @media (min-width: 700px)
       width: 50%
+    img
+      width: 100%
   p
     clear: both
   
@@ -108,6 +109,7 @@ section, aside
     .i
       display: block
 .i
+  border-top: 0.238em solid $teal
   img
     max-width: 100%
 .i, .fe

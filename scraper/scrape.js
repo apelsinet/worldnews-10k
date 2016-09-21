@@ -42,7 +42,7 @@ const Scraper = {
 
             let articlePromise = new Promise((articleResolve, articleReject) => {
 
-              const scrapeArticle = (url, i) => {
+              let scrapeArticle = (url, i) => {
 
                 metascraper.scrapeUrl(url).then((metaData) => {
 
@@ -103,6 +103,8 @@ const Scraper = {
             }).catch(i => {
               // Catch unscraped article and try to fill object entry with a new article.
               scrapeExtraArticle++;
+              console.log('scrapeExtraArticle: ' + scrapeExtraArticle);
+              console.log('new url: ' + json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url);
               console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
               scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
             });

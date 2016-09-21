@@ -10,8 +10,7 @@ const routes = require('./routes/index');
 const users = require('./routes/users');
 
 const app = express();
-const ONE_MONTH = 1000 * 60 * 60 * 24 * 30;
-const CACHE_TIME = ONE_MONTH;
+const CACHE_TIME = 300000;
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

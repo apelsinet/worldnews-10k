@@ -15,7 +15,6 @@ var s = function () {
     }
     f = true;
     async('https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js', function() {
-        console.log('webfont loaded');
         WebFont.load({
           google: {
             families: ['Open Sans', 'Belgrano']
@@ -31,7 +30,11 @@ function async(u, c) {
   o = d.createElement(t),
   s = d.getElementsByTagName(t)[0];
   o.src = u;
-  if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+  if (c) {
+    o.addEventListener('load', function (e) {
+      c(null, e);
+    }, false);
+  }
   s.parentNode.insertBefore(o, s);
 }
 
