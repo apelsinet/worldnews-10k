@@ -1,1 +1,0 @@
-console.log("lazyLoad loaded");var scrolled=!1;window.addEventListener("scroll",function(e){scrolled===!1&&(console.log("scrolled"),scrolled=!0)})
