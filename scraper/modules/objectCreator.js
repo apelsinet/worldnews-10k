@@ -2,7 +2,7 @@ const constants = require(__dirname + '/constants');
 
 let obj = [];
 class Article {
-  constructor(id, url, title, desc, comUrl, comCount, imgPath, imgFormat, imgFull, imgComp) {
+  constructor(id, url, title, desc, comUrl, comCount, imgPath, imgFormat, imgFull, imgComp, imgBase64) {
     this.id = id;
     this.url = url;
     this.title = title;
@@ -13,6 +13,7 @@ class Article {
     this.imgFormat = imgFormat;
     this.imgFull = imgFull;
     this.imgComp = imgComp;
+    this.imgBase64 = imgBase64;
   }
 }
 

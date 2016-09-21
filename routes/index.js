@@ -76,7 +76,17 @@ router.get('/', function(req, res, next) {
     a6comCount: obj[6].comCount,
     a7comCount: obj[7].comCount,
     a8comCount: obj[8].comCount,
-    a9comCount: obj[9].comCount
+    a9comCount: obj[9].comCount,
+    a0base64: obj[0].imgBase64,
+    a1base64: obj[1].imgBase64,
+    a2base64: obj[2].imgBase64,
+    a3base64: obj[3].imgBase64,
+    a4base64: obj[4].imgBase64,
+    a5base64: obj[5].imgBase64,
+    a6base64: obj[6].imgBase64,
+    a7base64: obj[7].imgBase64,
+    a8base64: obj[8].imgBase64,
+    a9base64: obj[9].imgBase64
   });
 });
 
