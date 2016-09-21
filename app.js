@@ -10,7 +10,8 @@ const routes = require('./routes/index');
 const users = require('./routes/users');
 
 const app = express();
-const CACHE_TIME = 300000;
+const ONE_MONTH = 1000 * 60 * 60 * 24 * 30;
+const CACHE_TIME = ONE_MONTH;
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -18,7 +19,10 @@ app.set('view engine', 'pug');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(compression({level: 9, threshold: false}));
+app.use(compression({
+  level: 9,
+  threshold: 100,
+  }));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -27,8 +31,9 @@ app.use(require('node-sass-middleware')({
   src: path.join(__dirname, 'dist'),
   dest: path.join(__dirname, 'dist'),
   indentedSyntax: true,
-  sourceMap: true,
-  outputStyle: 'compressed'
+  sourceMap: false,
+  outputStyle: 'compressed',
+  maxAge: CACHE_TIME
 }));
 app.use(express.static(path.join(__dirname, 'dist'), {maxAge: CACHE_TIME}));
 
