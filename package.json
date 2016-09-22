@@ -2,6 +2,12 @@
   "name": "worldnews-10k",
   "version": "0.0.0",
   "private": true,
+  "repository": "apelsinet/worldnews-10k",
+  "author": {
+    "name": "Mattias Prada",
+    "email": "mattiasprada@gmail.com",
+    "url": "apelsi.net"
+  },
   "scripts": {
     "start": "NODE_ENV=production node ./bin/www",
     "debug": "DEBUG=worldnews-10k:* node ./bin/www"
@@ -15,9 +21,6 @@
     "file-type": "^3.8.0",
     "gif-stream": "^1.1.0",
     "image-type": "^2.1.0",
-    "imagemin": "^5.2.2",
-    "imagemin-mozjpeg": "^6.0.0",
-    "imagemin-pngquant": "^5.0.0",
     "jimp": "^0.2.27",
     "jpg-stream": "^1.1.1",
     "jsonfile": "^2.3.1",
