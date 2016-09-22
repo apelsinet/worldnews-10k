@@ -49,7 +49,7 @@ const convertImages = (obj, i) => {
     console.log('Error: file ' + i + ' is neither jpg, png or gif.');
   }
 
-  return obj;
+  return obj[i];
 }
 
 module.exports = convertImages;

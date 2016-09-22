@@ -2,6 +2,7 @@
 const fs = require('fs');
 const metascraper = require('metascraper');
 const fetch = require('node-fetch');
+const timestamp = require('console-timestamp');
 
 // Modules for image-type checker
 const readChunk = require('read-chunk');
@@ -19,114 +20,124 @@ const compressImages = require(__dirname + '/modules/compressImages');
 
 const Scraper = {
 
-  run: () => new Promise((resolve, reject) => {
+  run: () => new Promise((rootResolve, rootReject) => {
     // Initialize object to store all data.
     let obj = objectCreator();
+    let scrapeArticle;
 
     console.log('Scraper started.\n');
     console.time('Scraper finished in');
 
-    let scraperPromise = new Promise((scraperResolve, scraperReject) => {
+    new Promise((scraperResolve, scraperReject) => {
 
       cleanFolder(constants.IMG_DIR);
 
       fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES)
         .then(jsonResponse => {
           return jsonResponse.json();
-        }).then(json => {
+        })
+      .then(json => {
 
-          let articlesReceived = 0,
-          scrapeExtraArticle = 0;
+        let articlesReceived = 0,
+        scrapeExtraArticle = 0;
 
-          for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
+        for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
 
-            let articlePromise = new Promise((articleResolve, articleReject) => {
+          let articlePromise = new Promise((articleResolve, articleReject) => {
 
-              let scrapeArticle = (url, i) => {
+            scrapeArticle = (url, i) => {
 
-                metascraper.scrapeUrl(url).then((metaData) => {
+              metascraper.scrapeUrl(url).then((metaData) => {
 
-                  obj = storeArticleData(obj, json, metaData, i);
-                  const img = sanitizeImageURL(metaData.image, i);
-                  fetch(img).then(res => {
+                console.log('Scraped article: ' + i);
+                obj = storeArticleData(obj, json, metaData, i);
+                const img = sanitizeImageURL(metaData.image, i);
 
-                    if (res.status != 200) {
-                      console.log('Status: ' + res.status + '. Using generic image.');
+                fetch(img).then(res => {
+                  if (res.status != 200) {
+                    console.log('Status: ' + res.status + '. Using generic image.');
+                    fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
+                    return readChunk.sync('./dist/not_found.png', 0, 12);
+                  }
+                  else {
+                    res.body.on('error', err => {
+                      console.log('Error fetching image: ' + i + '.\n' + err);
+                      console.log('Using generic image.');
                       fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
                       return readChunk.sync('./dist/not_found.png', 0, 12);
-                    }
-                    else {
-                      res.body.on('error', err => {
-                        console.log('Error fetching image: ' + i + '.\n' + err);
-                        articleReject(i);
-                      });
-                      res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
-                      return res.buffer();
-                    }
-
-                  }).then(buffer => {
-                    obj[i].imgFormat = imageType(buffer).ext;
-                    obj = convertImages(obj, i);
-                    articleResolve(i);
-                  }).catch(err => {
-                    console.log('Could not fetch or store image: ' + img);
-                    console.log(err);
-                    articleReject(i);
-                  });
-
-                }).catch(err => {
-                  console.log('Could not scrape data from: ' + json.data.children[i].data.url);
-                  console.log(err);
-                  articleReject(i);
+                    });
+                    res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
+                    return res.buffer();
+                  }
+                })
+                .catch(() => {
+                  console.log('Could not fetch or store image, using generic image.');
+                  fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
+                  return readChunk.sync('./dist/not_found.png', 0, 12);
+                })
+                .then(buffer => {
+                  obj[i].imgFormat = imageType(buffer).ext;
+                  obj[i] = convertImages(obj, i);
+                  articleResolve(i);
                 });
 
-              }
+              })
+              .catch(err => {
+                console.log('Could not scrape metadata from: ' + json.data.children[i].data.url);
+                console.log(err);
+                articleReject(i);
+              });
 
-              scrapeArticle(json.data.children[i].data.url, i);
+            } //scrapeArticle function
 
-            });
+            scrapeArticle(json.data.children[i].data.url, i);
 
-            articlePromise.then(i => {
-              articlesReceived++;
-              console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.\n');
+          })
+          .then(i => {
+            articlesReceived++;
 
-              if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
-                compressImages.run(obj).then(result => {
-                  obj = result;
-                  scraperResolve(obj);
-                }).catch(err => {
-                  console.log(err);
-                  scraperReject(err);
-                });
-              }
+            if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
+              console.log('All articles complete.\n');
+              compressImages.run(obj).then(result => {
+                obj = result;
+                scraperResolve(obj);
+              })
+              .catch(err => {
+                console.log(err);
+                scraperReject(err);
+              });
+            }
 
-            }).catch(i => {
-              // Catch unscraped article and try to fill object entry with a new article.
-              scrapeExtraArticle++;
-              console.log('scrapeExtraArticle: ' + scrapeExtraArticle);
-              console.log('new url: ' + json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url);
-              console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
-              scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
-            });
+          })
+          .catch(i => {
+            // Catch unscraped article and try to fill object entry with a new article.
+            scrapeExtraArticle++;
+            console.log('scrapeExtraArticle: ' + scrapeExtraArticle);
+            console.log('new url: ' + json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url);
+            console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
+            scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
+          });
 
-          } // for loop
+        } // for loop
 
-        }).catch(err => {
-          console.log('Could not fetch WorldNews json.');
-          console.log(err);
-        });
+      })
+      .catch(err => {
+        console.log('Could not fetch WorldNews json.');
+        console.log(err);
+      });
 
-    });
-
-    scraperPromise.then(obj => {
+    })
+    .then(obj => {
       console.log('\n----------');
+      console.log('Current server time: ' + timestamp());
       console.timeEnd('Scraper finished in');
       console.log('----------\n');
-      resolve(obj); // export obj
-    }).catch(err => {
+      rootResolve(obj); // export obj
+    })
+    .catch(err => {
       console.log('Could not complete scraper job.');
       console.log(err);
-      reject(err);
+      rootReject(err);
     });
 
   }) // module promise
