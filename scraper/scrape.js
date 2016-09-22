@@ -91,7 +91,7 @@ const Scraper = {
               console.log('Articles received: ' + articlesReceived + ' of ' + constants.ARTICLES_TO_SCRAPE + '.\n');
 
               if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
-                compressImages.inputObject(obj).then(result => {
+                compressImages.run(obj).then(result => {
                   obj = result;
                   scraperResolve(obj);
                 }).catch(err => {
