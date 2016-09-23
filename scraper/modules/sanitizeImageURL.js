@@ -6,7 +6,7 @@ const sanitizeImageURL = (imgURL, i) => {
     img = imgURL;
   }
   else {
-    console.log('Image for article #' + i + ' not found. Using generic image.');
+    console.log('Image for article ' + i + ' not found.');
     return false;
   }
   let fileType = path.extname(img);
@@ -17,7 +17,7 @@ const sanitizeImageURL = (imgURL, i) => {
   fileType = fileType.substring(0, questionMark != -1 ? questionMark : fileType.length);
 
   if (fileType != '.jpg' && fileType != '.jpeg' && fileType != '.png' && fileType != '.gif') {
-    console.log('Unknown file type for article #' + i + '. Using generic image.');
+    console.log('Unknown file type for article ' + i + '.');
     return false;
   }
   return img;

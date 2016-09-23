@@ -71,7 +71,7 @@ const Scraper = {
                   }
                 })
                 .catch(() => {
-                  console.log('Could not fetch or store image, using generic image.');
+                  console.log('Could not fetch or store image ' + i + ', using generic image.');
                   fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
                   return readChunk.sync('./dist/not_found.png', 0, 12);
                 })
