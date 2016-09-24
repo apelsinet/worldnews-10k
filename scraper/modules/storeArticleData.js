@@ -38,12 +38,14 @@ const storeArticleData = (obj, json, metaData, i) => {
 
   obj[i].url = json.data.children[i].data.url;
 
+  let tooLongTitle = false;
   obj[i].title = removePipe(json.data.children[i].data.title);
-  if (obj[i].title.length > 150 && metaData.title != undefined) {
+  if (obj[i].title.length > 200 && metaData.title != undefined && metaData.image != undefined && metaData.description != undefined) {
     obj[i].title = removePipe(metaData.title);
   }
-  if (obj[i].title.length > 150) {
-    obj[i].title = shortenString(obj[i].title, 150);
+  if (obj[i].title.length > 200) {
+    obj[i].title = shortenString(obj[i].title, 300);
+    tooLongTitle = true;
   }
   obj[i].title = obj[i].title.trim();
   obj[i].title = fixQuotes(obj[i].title);
@@ -56,8 +58,14 @@ const storeArticleData = (obj, json, metaData, i) => {
     }
     obj[i].desc = fixQuotes(metaData.description);
   }
+
+  else if (tooLongTitle == true) {
+    console.log('Article title for article ' + i + ' is too long. Removing description.');
+    obj[i].desc = '';
+  }
+
   else {
-    console.log('Article description for article #' + i + ' not found. Using empty string.');
+    console.log('Article description for article ' + i + ' not found. Using empty string.');
     obj[i].desc = '';
   }
   obj[i].comUrl = 'https://www.reddit.com' + json.data.children[i].data.permalink;

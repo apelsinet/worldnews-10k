@@ -4,6 +4,9 @@ const sanitizeImageURL = (imgURL, i) => {
     console.log('Image for article ' + i + ' not found.');
     return false;
   }
+  if (img.indexOf('gif') !== -1) {
+    return false;
+  }
   return img;
 }
 
