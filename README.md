@@ -9,7 +9,8 @@ The application uses [Express.js](https://expressjs.com/) with [Pug](https://pug
 
 You need the following dependencies to build this project locally.
 
-1. [Git](https://git-scm.com/downloads) - to clone the project.
-2. [Node 6.0.0 or greater](https://nodejs.org) - (The project is written using ECMAScript2015, which is only supported by Node 6 or later).
+1. [Git](https://git-scm.com/downloads) - To clone the project.
+2. [Node 6.0.0 or greater](https://nodejs.org) - The project is written using ECMAScript 2015, which is only supported by Node 6 or later.
+3. [Node-gyp](https://github.com/nodejs/node-gyp) - Some of the dependencies require node-gyp globally installed to build correctly.
 
 Once you have what's needed. Install the required node modules using `npm install`. After installing all dependencies, you can start the application is production mode using `npm start` or in debug mode using `npm run debug`. 
