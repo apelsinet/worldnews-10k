@@ -14,6 +14,7 @@ const convertImages = (obj, i) => {
       if (err) {
         console.log('Could not convert PNG to JPG. Using generic image');
         fs.writeFileSync(constants.IMG_DIR + i + '.jpg', fs.readFileSync('./dist/not_found.jpg'));
+        console.log('Saved image: ' + i + '. Generic image.');
       }
       else {
         image.write(constants.DIST_IMG_FULL + i + '.jpg');
