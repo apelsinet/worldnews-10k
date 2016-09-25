@@ -28,7 +28,6 @@
     "node-fetch": "^1.6.0",
     "node-sass-middleware": "0.8.0",
     "path": "^0.12.7",
-    "png-to-jpeg": "^1.0.1",
     "pug": "^2.0.0-beta6",
     "read-chunk": "^2.0.0",
     "rimraf": "^2.5.4",

@@ -56,15 +56,15 @@ const Scraper = {
                 fetch(img).then(res => {
                   if (res.status != 200) {
                     console.log('Status: ' + res.status + '. Using generic image.');
-                    fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
-                    return readChunk.sync('./dist/not_found.png', 0, 12);
+                    fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.jpg'));
+                    return readChunk.sync('./dist/not_found.jpg', 0, 12);
                   }
                   else {
                     res.body.on('error', err => {
                       console.log('Error fetching image: ' + i + '.\n' + err);
                       console.log('Using generic image.');
-                      fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
-                      return readChunk.sync('./dist/not_found.png', 0, 12);
+                      fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.jpg'));
+                      return readChunk.sync('./dist/not_found.jpg', 0, 12);
                     });
                     res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
                     return res.buffer();
@@ -72,8 +72,8 @@ const Scraper = {
                 })
                 .catch(() => {
                   console.log('Could not fetch or store image ' + i + ', using generic image.');
-                  fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.png'));
-                  return readChunk.sync('./dist/not_found.png', 0, 12);
+                  fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.jpg'));
+                  return readChunk.sync('./dist/not_found.jpg', 0, 12);
                 })
                 .then(buffer => {
                   obj[i].imgFormat = imageType(buffer).ext;
