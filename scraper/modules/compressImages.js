@@ -5,12 +5,10 @@ const Jimp = require('jimp');
 
 // Internal modules
 const constants = require(__dirname + '/constants');
-const cleanFolder = require(__dirname + '/cleanFolder');
+const fileExists = require(__dirname + '/fileExists');
 
 const CompressImages = {
   run: (obj) => new Promise((rootResolve, rootReject) => {
-
-    cleanFolder(constants.DIST_IMG_FULL);
 
     new Promise((base64Resolve, base64Reject) => {
       let base64Saved = 0;
@@ -18,6 +16,11 @@ const CompressImages = {
 
         Jimp.read(constants.IMG_DIR + j + '.jpg', function (err, image) {
           if (err) throw err;
+
+          // clean up old file
+          if (fileExists(constants.DIST_IMG_FULL + j + '.jpg')) {
+            fs.unlinkSync(constants.DIST_IMG_FULL + j + '.jpg');
+          }
 
           image.resize(640, Jimp.AUTO)
             .quality(70)
@@ -40,15 +43,15 @@ const CompressImages = {
         });
       }
     })
-    .then(() => {
-      console.log('Image compression complete.\n');
-      rootResolve(obj);
-    })
-    .catch(err => {
-      console.log('Error compressing images.');
-      console.log(err);
-      rootReject(obj);
-    });
+      .then(() => {
+        console.log('Image compression complete.\n');
+        rootResolve(obj);
+      })
+      .catch(err => {
+        console.log('Error compressing images.');
+        console.log(err);
+        rootReject(obj);
+      });
   })
 }
 

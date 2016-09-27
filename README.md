@@ -12,5 +12,10 @@ You need the following dependencies to build this project locally.
 1. [Git](https://git-scm.com/downloads) - To clone the project.
 2. [Node 6.0.0 or greater](https://nodejs.org) - The project is written using ECMAScript 2015, which is only supported by Node 6 or later.
 3. [Node-gyp](https://github.com/nodejs/node-gyp) - Some of the dependencies require node-gyp globally installed to build correctly.
+4. [Forever](https://github.com/foreverjs/forever) - To start the scraper and server as daemons.
 
-Once you have what's needed. Install the required node modules using `npm install`. After installing all dependencies, you can start the application is production mode using `npm start` or in debug mode using `npm run debug`. 
+Once you have what's needed. Install the required node modules using `npm install`. After installing all dependencies, you can start the scraper using `node job.js` and the application server in production mode using `npm start` or in debug mode using `npm run debug`. To automate this we use forever. Start both daemons using `sh start.sh`.
+
+## Note on server performance
+
+The original online version of this project uses NGINX to reverse proxy the express application and serve everything except the index, which is dynamic. This helps off loading express.
