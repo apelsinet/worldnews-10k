@@ -1,27 +1,20 @@
-var express = require('express');
-var router = express.Router();
-const scraper = require('../scraper/scrape');
+const express = require('express');
+const router = express.Router();
+const fs = require('fs');
+const minutes = 5, scraperInterval = minutes * 60 * 1000;
 
 let obj;
-
-// Run scraper first time when starting server.
-scraper.run().then(result => {
-  obj = result;
-})
-.catch(err => {
-  console.log(err);
+fs.readFile('./data.json', (err, data) => {
+  if (err) throw err;
+  obj = JSON.parse(data);
 });
-
-const minutes = 5, scraperInterval = minutes * 60 * 1000;
-// Run scraper every x minutes.
 setInterval(() => {
-  scraper.run().then(result => {
-    obj = result;
-  })
-  .catch(err => {
-    console.log(err);
+  fs.readFile('./data.json', (err, data) => {
+    if (err) throw err;
+    obj = JSON.parse(data);
   });
 }, scraperInterval);
+
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
