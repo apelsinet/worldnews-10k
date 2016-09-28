@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const DATA_JSON = './data.json';
+const minutes = 2, readJsonInterval = minutes * 60 * 1000;
 
 let obj;
 
@@ -21,11 +22,16 @@ const readJsonFile = (jsonFile) => {
   });
 }
 
+// Read json on server start.
+readJsonFile(DATA_JSON);
+
+// Read json every x minutes.
+setInterval(() => {
+  readJsonFile(DATA_JSON);
+}, readJsonInterval);
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-
-  readJsonFile(DATA_JSON);
 
   res.render('index', {
     title: 'WorldNews 10K',
