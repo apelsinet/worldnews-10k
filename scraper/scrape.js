@@ -15,7 +15,7 @@ const cleanFolder = require(__dirname + '/modules/cleanFolder');
 const storeArticleData = require(__dirname + '/modules/storeArticleData');
 const sanitizeImageURL = require(__dirname + '/modules/sanitizeImageURL');
 const fileExists = require(__dirname + '/modules/fileExists');
-const convertImages = require(__dirname + '/modules/convertImages');
+const fetchImages = require(__dirname + '/modules/fetchImages');
 const compressImages = require(__dirname + '/modules/compressImages');
 
 const Scraper = {
@@ -53,33 +53,10 @@ const Scraper = {
                 obj = storeArticleData(obj, json, metaData, i);
                 const img = sanitizeImageURL(metaData.image, i);
 
-                fetch(img).then(res => {
-                  if (res.status != 200) {
-                    console.log('Status: ' + res.status + '. Using generic image.');
-                    fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.jpg'));
-                    return readChunk.sync('./dist/not_found.jpg', 0, 12);
-                  }
-                  else {
-                    res.body.on('error', err => {
-                      console.log('Error fetching image: ' + i + '.\n' + err);
-                      console.log('Using generic image.');
-                      fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.jpg'));
-                      return readChunk.sync('./dist/not_found.jpg', 0, 12);
-                    });
-                    res.body.pipe(fs.createWriteStream(constants.IMG_DIR + i));
-                    return res.buffer();
-                  }
-                })
-                .catch(() => {
-                  console.log('Could not fetch or store image ' + i + ', using generic image.');
-                  fs.writeFileSync(constants.IMG_DIR + i, fs.readFileSync('./dist/not_found.jpg'));
-                  return readChunk.sync('./dist/not_found.jpg', 0, 12);
-                })
-                .then(buffer => {
-                  obj[i].imgFormat = imageType(buffer).ext;
-                  obj[i] = convertImages(obj, i);
+                fetchImages.get(img, i).then(fileName => {
                   articleResolve(i);
                 });
+                
 
               })
               .catch(err => {

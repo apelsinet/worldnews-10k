@@ -1,23 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-const minutes = 5, scraperInterval = minutes * 60 * 1000;
+const DATA_JSON = './data.json';
 
 let obj;
-fs.readFile('./data.json', (err, data) => {
-  if (err) throw err;
-  obj = JSON.parse(data);
-});
-setInterval(() => {
-  fs.readFile('./data.json', (err, data) => {
-    if (err) throw err;
+
+const readJsonFile = (jsonFile) => {
+  let retriesRemaining = 5;
+  fs.readFile(jsonFile, (err, data) => {
+    if (err) {
+      if (retriesRemaining > 0) {
+        retriesRemaining--;
+        setTimeout(readJsonFile(DATA_JSON), 2000);
+      }
+      else {
+        throw err;
+      }
+    }
     obj = JSON.parse(data);
   });
-}, scraperInterval);
+}
 
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
+
+  readJsonFile(DATA_JSON);
+
   res.render('index', {
     title: 'WorldNews 10K',
     a0title: obj[0].title,

@@ -17,7 +17,7 @@ const convertImages = (obj, i) => {
         console.log('Saved image: ' + i + '. Generic image.');
       }
       else {
-        image.write(constants.DIST_IMG_FULL + i + '.jpg');
+        image.write(constants.IMG_DIR + i + '.jpg');
         console.log('Saved image: ' + i + '. PNG -> JPG');
       }
     });
