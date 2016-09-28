@@ -7,47 +7,44 @@ const Jimp = require('jimp');
 const constants = require(__dirname + '/constants');
 const fileExists = require(__dirname + '/fileExists');
 
-const CompressImages = {
-  run: (obj, i) => new Promise((resolveRoot, rejectRoot) => {
+module.exports = (obj, i) => new Promise((resolveRoot, rejectRoot) => {
 
-    new Promise((resolveBase64, rejectBase64) => {
+  new Promise((resolveBase64, rejectBase64) => {
 
-      Jimp.read(constants.IMG_DIR + i + '.jpg', (err, image) => {
-        if (err) throw err;
+    Jimp.read(constants.IMG_DIR + i + '.jpg', (err, image) => {
+      if (err) throw err;
 
-        // clean up old file
-        if (fileExists(constants.DIST_IMG_FULL + i + '.jpg')) {
-          fs.unlinkSync(constants.DIST_IMG_FULL + i + '.jpg');
-        }
+      // clean up old file
+      if (fileExists(constants.DIST_IMG_FULL + i + '.jpg')) {
+        fs.unlinkSync(constants.DIST_IMG_FULL + i + '.jpg');
+      }
 
-        // write high res file
-        image.resize(640, Jimp.AUTO)
-          .quality(70)
-          .write(constants.DIST_IMG_FULL + i + '.jpg');
-        console.log('High res version of image: ' + i + ' written.');
-        obj.imgFull = constants.DIST_IMG_FULL + i + '.jpg';
+      // write high res file
+      image.resize(640, Jimp.AUTO)
+        .quality(70)
+        .write(constants.DIST_IMG_FULL + i + '.jpg');
+      console.log('High res version of image: ' + i + ' written.');
+      obj.imgFull = constants.DIST_IMG_FULL + i + '.jpg';
 
-        // encode base64 preview
-        image.resize(16, Jimp.AUTO)
-          .rgba(false)
-          .deflateLevel(1)
-          .getBase64(Jimp.MIME_PNG, (err, result) => {
-            if (err) base64reject();
-            obj.imgBase64 = result;
-            console.log('Base64 of image: ' + i + ' encoded.');
-            resolveBase64();
-          });
-      });
-    }).then(() => {
-      // successfully compressed image
-      console.log('Image ' + i + ' complete.');
-      resolveRoot(obj);
-    }).catch(err => {
-      console.log('Error compressing image ' + i + '.');
-      console.log(err);
-      rejectRoot(obj);
+      // encode base64 preview
+      image.resize(16, Jimp.AUTO)
+        .rgba(false)
+        .deflateLevel(1)
+        .getBase64(Jimp.MIME_PNG, (err, result) => {
+          if (err) base64reject();
+          obj.imgBase64 = result;
+          console.log('Base64 of image: ' + i + ' encoded.');
+          resolveBase64();
+        });
     });
-  })
-}
+  }).then(() => {
+    // successfully compressed image
+    console.log('Image ' + i + ' complete.');
+    resolveRoot(obj);
+  }).catch(err => {
+    console.log('Error compressing image ' + i + '.');
+    console.log(err);
+    rejectRoot(obj);
+  });
+})
 
-module.exports = CompressImages;

@@ -10,7 +10,7 @@ if (fileExists(DATA_JSON)) {
 
 const runScraper = () => {
   let retriesRemaining = 5;
-  scraper.run().then(result => {
+  scraper().then(result => {
     fs.writeFile('data.json', JSON.stringify(result), (err) => {
       if (err) {
         if (retriesRemaining > 0) {
