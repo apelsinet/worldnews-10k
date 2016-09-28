@@ -49,7 +49,7 @@ const Scraper = {
 
               metascraper.scrapeUrl(url).then((metaData) => {
 
-                console.log('Scraped article: ' + i);
+                console.log('Scraped article: ' + i + '.');
                 obj = storeArticleData(obj, json, metaData, i);
                 const img = sanitizeImageURL(metaData.image, i);
 
