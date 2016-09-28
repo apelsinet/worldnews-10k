@@ -13,10 +13,9 @@ scraper.run().then(result => {
     if (err) throw err;
     console.log('JSON file created.');
   });
-})
-  .catch(err => {
-    console.log(err);
-  });
+}).catch(err => {
+  console.log(err);
+});
 
 // Run scraper every x minutes.
 setInterval(() => {
@@ -24,10 +23,10 @@ setInterval(() => {
     fs.writeFile('data.json', JSON.stringify(result), (err) => {
       if (err) throw err;
       console.log('JSON file updated.');
-    });  })
-    .catch(err => {
-      console.log(err);
     });
+  }).catch(err => {
+    console.log(err);
+  });
 }, scraperInterval);
 
 

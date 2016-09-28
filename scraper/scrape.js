@@ -1,12 +1,7 @@
-// Modules for scraper
 const fs = require('fs');
 const metascraper = require('metascraper');
 const fetch = require('node-fetch');
 const timestamp = require('console-timestamp');
-
-// Modules for image-type checker
-const readChunk = require('read-chunk');
-const imageType = require('file-type');
 
 // Internal modules
 const constants = require(__dirname + '/modules/constants');
