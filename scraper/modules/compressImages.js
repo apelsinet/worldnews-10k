@@ -8,50 +8,45 @@ const constants = require(__dirname + '/constants');
 const fileExists = require(__dirname + '/fileExists');
 
 const CompressImages = {
-  run: (obj) => new Promise((rootResolve, rootReject) => {
+  run: (obj, i) => new Promise((resolveRoot, rejectRoot) => {
 
-    new Promise((base64Resolve, base64Reject) => {
-      let base64Saved = 0;
-      for(let j = 0; j < constants.ARTICLES_TO_SCRAPE; j++) {
+    new Promise((resolveBase64, rejectBase64) => {
 
-        Jimp.read(constants.IMG_DIR + j + '.jpg', function (err, image) {
-          if (err) throw err;
+      Jimp.read(constants.IMG_DIR + i + '.jpg', (err, image) => {
+        if (err) throw err;
 
-          // clean up old file
-          if (fileExists(constants.DIST_IMG_FULL + j + '.jpg')) {
-            fs.unlinkSync(constants.DIST_IMG_FULL + j + '.jpg');
-          }
+        // clean up old file
+        if (fileExists(constants.DIST_IMG_FULL + i + '.jpg')) {
+          fs.unlinkSync(constants.DIST_IMG_FULL + i + '.jpg');
+        }
 
-          image.resize(640, Jimp.AUTO)
-            .quality(70)
-            .write(constants.DIST_IMG_FULL + j + '.jpg');
-          console.log('High res version of image: ' + j + ' written.');
-          obj[j].imgFull = constants.DIST_IMG_FULL + j + '.jpg';
+        // write high res file
+        image.resize(640, Jimp.AUTO)
+          .quality(70)
+          .write(constants.DIST_IMG_FULL + i + '.jpg');
+        console.log('High res version of image: ' + i + ' written.');
+        obj.imgFull = constants.DIST_IMG_FULL + i + '.jpg';
 
-          image.resize(16, Jimp.AUTO)
-            .rgba(false)
-            .deflateLevel(1)
-            .getBase64(Jimp.MIME_PNG, function (err, result) {
-              if (err) base64reject();
-              obj[j].imgBase64 = result;
-              console.log('Base64 version of image: ' + j + ' encoded.');
-              base64Saved++;
-              if (base64Saved == constants.ARTICLES_TO_SCRAPE - 1) {
-                base64Resolve();
-              }
-            });
-        });
-      }
-    })
-      .then(() => {
-        console.log('Image compression complete.\n');
-        rootResolve(obj);
-      })
-      .catch(err => {
-        console.log('Error compressing images.');
-        console.log(err);
-        rootReject(obj);
+        // encode base64 preview
+        image.resize(16, Jimp.AUTO)
+          .rgba(false)
+          .deflateLevel(1)
+          .getBase64(Jimp.MIME_PNG, (err, result) => {
+            if (err) base64reject();
+            obj.imgBase64 = result;
+            console.log('Base64 of image: ' + i + ' encoded.');
+            resolveBase64();
+          });
       });
+    }).then(() => {
+      // successfully compressed image
+      console.log('Image ' + i + ' complete.');
+      resolveRoot(obj);
+    }).catch(err => {
+      console.log('Error compressing image ' + i + '.');
+      console.log(err);
+      rejectRoot(obj);
+    });
   })
 }
 

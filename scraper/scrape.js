@@ -20,7 +20,7 @@ const compressImages = require(__dirname + '/modules/compressImages');
 
 const Scraper = {
 
-  run: () => new Promise((rootResolve, rootReject) => {
+  run: () => new Promise((resolveRoot, rejectRoot) => {
     // Initialize object to store all data.
     let obj = objectCreator();
     let scrapeArticle;
@@ -28,7 +28,7 @@ const Scraper = {
     console.log('Scraper started.\n');
     console.time('Scraper finished in');
 
-    new Promise((scraperResolve, scraperReject) => {
+    new Promise((resolveAllArticles, rejectAllArticles) => {
 
       cleanFolder(constants.IMG_DIR);
 
@@ -36,88 +36,89 @@ const Scraper = {
         .then(jsonResponse => {
           return jsonResponse.json();
         })
-      .then(json => {
+        .then(json => {
 
-        let articlesReceived = 0,
-        scrapeExtraArticle = 0;
+          let articlesReceived = 0,
+            scrapeExtraArticle = 0;
 
-        for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
+          for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
 
-          let articlePromise = new Promise((articleResolve, articleReject) => {
+            new Promise((resolveFetch, rejectFetch) => {
 
-            scrapeArticle = (url, i) => {
+              scrapeArticle = (url, i) => {
 
-              metascraper.scrapeUrl(url).then((metaData) => {
+                metascraper.scrapeUrl(url).then((metaData) => {
 
-                console.log('Scraped article: ' + i + '.');
-                obj = storeArticleData(obj, json, metaData, i);
-                const img = sanitizeImageURL(metaData.image, i);
+                  console.log('Scraped article: ' + i + '.');
+                  obj = storeArticleData(obj, json, metaData, i);
+                  const img = sanitizeImageURL(metaData.image, i);
 
-                fetchImages.get(img, i).then(fileName => {
-                  articleResolve(i);
+                  fetchImages.get(img, i).then(fileName => {
+                    resolveFetch(i);
+                  });
+
+                }).catch(err => {
+                  console.log('Could not scrape metadata from: ' + json.data.children[i].data.url);
+                  console.log(err);
+                  rejectFetch(err);
                 });
-                
 
-              })
-              .catch(err => {
-                console.log('Could not scrape metadata from: ' + json.data.children[i].data.url);
+              } //scrapeArticle function
+
+              scrapeArticle(json.data.children[i].data.url, i);
+
+            }).then(i => {
+              // successfully stored metadata and image
+              compressImages.run(obj[i], i).then(result => {
+                obj[i] = result;
+                articlesReceived++;
+              }).catch(err => {
                 console.log(err);
-                articleReject(i);
+
+                if (scrapeExtraArticle === constants.EXTRA_ARTICLES) { 
+                  rejectAllArticles(err);
+                }
+
+                // Catch unscraped article and try to fill object entry with a new article.
+                scrapeExtraArticle++;
+                console.log('scrapeExtraArticle: ' + scrapeExtraArticle);
+                console.log('new url: ' + json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url);
+                console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
+                scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
+
               });
 
-            } //scrapeArticle function
+              if (articlesReceived == constants.ARTICLES_TO_SCRAPE - 1) {
+                console.log('All articles complete.\n');
+                resolveAllArticles(obj);
+              }
 
-            scrapeArticle(json.data.children[i].data.url, i);
+            }).catch(err => {
+              console.log('Could not fetch article ' + i);
+              console.log(err);
+            });
 
-          })
-          .then(i => {
-            articlesReceived++;
+          } // for loop
 
-            if (articlesReceived == constants.ARTICLES_TO_SCRAPE) {
-              console.log('All articles complete.\n');
-              compressImages.run(obj).then(result => {
-                obj = result;
-                scraperResolve(obj);
-              })
-              .catch(err => {
-                console.log(err);
-                scraperReject(err);
-              });
-            }
+        }).catch(err => {
+          console.log('Could not fetch WorldNews json.');
+          console.log(err);
+        });
 
-          })
-          .catch(i => {
-            // Catch unscraped article and try to fill object entry with a new article.
-            scrapeExtraArticle++;
-            console.log('scrapeExtraArticle: ' + scrapeExtraArticle);
-            console.log('new url: ' + json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url);
-            console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
-            scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
-          });
-
-        } // for loop
-
-      })
-      .catch(err => {
-        console.log('Could not fetch WorldNews json.');
-        console.log(err);
-      });
-
-    })
-    .then(obj => {
+    }).then(obj => {
       console.log('\n----------');
       console.log('Current server time: ' + timestamp());
       console.timeEnd('Scraper finished in');
       console.log('----------\n');
-      rootResolve(obj); // export obj
-    })
-    .catch(err => {
-      console.log('Could not complete scraper job.');
+      resolveRoot(obj); // export obj
+    }).catch(err => {
+      // No more possible articles to scrape
+      console.log('Could not complete ' + constants.ARTICLES_TO_SCRAPE + ' out of ' + constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES + ' possible articles.');
       console.log(err);
-      rootReject(err);
+      rejectRoot(err);
     });
 
-  }) // module promise
+  }) // root promise
 }
 
 module.exports = Scraper;
