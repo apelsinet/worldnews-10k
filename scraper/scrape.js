@@ -65,6 +65,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
             compressImages(obj[i], i).then(result => {
               obj[i] = result;
               articlesReceived++;
+              console.log(articlesReceived + '/' + constants.ARTICLES_TO_SCRAPE);
             }).catch(err => {
               console.log(err);
 
@@ -75,9 +76,9 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
               // Catch unscraped article and try to fill object entry with a new article.
               scrapeExtraArticle++;
               console.log('scrapeExtraArticle: ' + scrapeExtraArticle);
-              console.log('new url: ' + json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url);
+              console.log('new url: ' + json.data.children[(ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle)].data.url);
               console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
-              scrapeArticle(json.data.children[ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle].data.url, i);
+              scrapeArticle(json.data.children[(ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle)].data.url, i);
 
             });
 
