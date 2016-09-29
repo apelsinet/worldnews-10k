@@ -3,7 +3,7 @@ function define(name, value) {
     value:      value,
     enumerable: true
   });
-} 
+}
 
 define('ARTICLES_TO_SCRAPE', 10);
 define('EXTRA_ARTICLES', 5);

@@ -1,11 +1,7 @@
 const fs = require('fs');
-
-// Module to resize high res images and encode low res base64 versions.
 const Jimp = require('jimp');
-
-// Internal modules
-const constants = require(__dirname + '/constants');
-const fileExists = require(__dirname + '/fileExists');
+const constants = require('../constants');
+const fileExists = require('../fileExists');
 
 module.exports = (obj, i) => new Promise((resolveRoot, rejectRoot) => {
 

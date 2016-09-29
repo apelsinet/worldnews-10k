@@ -1,4 +1,4 @@
-const constants = require(__dirname + '/constants');
+const constants = require('../constants');
 
 let obj = [];
 class Article {

@@ -1,5 +1,5 @@
-const fileExists = require('./scraper/modules/fileExists');
-const scraper = require('./scraper/scrape');
+const scraper = require('./scraper');
+const fileExists = require('./scraper/fileExists');
 const fs = require('fs');
 const DATA_JSON = './data.json';
 const minutes = 5, scraperInterval = minutes * 60 * 1000;
@@ -11,7 +11,7 @@ if (fileExists(DATA_JSON)) {
 const runScraper = () => {
   let retriesRemaining = 5;
   scraper().then(result => {
-    fs.writeFile('data.json', JSON.stringify(result), (err) => {
+    fs.writeFile(DATA_JSON, JSON.stringify(result), (err) => {
       if (err) {
         if (retriesRemaining > 0) {
           retriesRemaining--;

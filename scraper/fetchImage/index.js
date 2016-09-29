@@ -2,13 +2,11 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const fileType = require('file-type');
 const Jimp = require('jimp');
-const constants = require(__dirname + '/constants');
-const fileExists = require(__dirname + '/fileExists');
-const writeGenericImage = require(__dirname + '/writeGenericImage');
+const constants = require('../constants');
+const fileExists = require('../fileExists');
+const writeGenericImage = require('../writeGenericImage');
 
 const filePath = constants.IMG_DIR;
-
-
 
 module.exports = (url, i) => new Promise((resolveRoot, rejectRoot) => {
 

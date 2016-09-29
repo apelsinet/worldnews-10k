@@ -1,4 +1,4 @@
-const storeArticleData = (obj, json, metaData, i) => {
+module.exports = (obj, json, metaData, i) => {
 
   let removePipe = (title) => {
     let s = title;
@@ -73,4 +73,3 @@ const storeArticleData = (obj, json, metaData, i) => {
   return obj;
 }
 
-module.exports = storeArticleData;

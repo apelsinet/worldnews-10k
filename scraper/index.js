@@ -2,16 +2,14 @@ const fs = require('fs');
 const metascraper = require('metascraper');
 const fetch = require('node-fetch');
 const timestamp = require('console-timestamp');
-
-// Internal modules
-const constants = require(__dirname + '/modules/constants');
-const objectCreator = require(__dirname + '/modules/objectCreator');
-const cleanFolder = require(__dirname + '/modules/cleanFolder');
-const storeArticleData = require(__dirname + '/modules/storeArticleData');
-const sanitizeImageURL = require(__dirname + '/modules/sanitizeImageURL');
-const fileExists = require(__dirname + '/modules/fileExists');
-const fetchImages = require(__dirname + '/modules/fetchImages');
-const compressImages = require(__dirname + '/modules/compressImages');
+const constants = require('./constants');
+const objectCreator = require('./objectCreator');
+const cleanFolder = require('./cleanFolder');
+const storeArticleData = require('./storeArticleData');
+const sanitizeImageURL = require('./sanitizeImageURL');
+const fileExists = require('./fileExists');
+const fetchImage = require('./fetchImage');
+const compressImage = require('./compressImage');
 
 module.exports = () => new Promise((resolveRoot, rejectRoot) => {
   // Initialize object to store all data.
@@ -46,7 +44,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
                 obj = storeArticleData(obj, json, metaData, i);
                 const img = sanitizeImageURL(metaData.image, i);
 
-                fetchImages(img, i).then(fileName => {
+                fetchImage(img, i).then(fileName => {
                   resolveFetch(i);
                 });
 
@@ -62,7 +60,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
 
           }).then(i => {
             // successfully stored metadata and image
-            compressImages(obj[i], i).then(result => {
+            compressImage(obj[i], i).then(result => {
               obj[i] = result;
               articlesReceived++;
               console.log(articlesReceived + '/' + constants.ARTICLES_TO_SCRAPE);

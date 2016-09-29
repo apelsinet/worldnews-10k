@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-const fileExists = require(__dirname + './../scraper/modules/fileExists');
+const fileExists = require('../scraper/fileExists');
 const DATA_JSON = './data.json';
 const minutes = 2, readJsonInterval = minutes * 60 * 1000;
 
