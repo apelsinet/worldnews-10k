@@ -1,5 +1,7 @@
+const fs = require('fs');
+
 module.exports = (i, destination) => new Promise((resolveGenericSaved, rejectGenericSaved) => {
-  fs.readFile('./dist/not_found.jpg', (err, data) => {
+  fs.readFile('./dist/generic.jpg', (err, data) => {
     if (err) {
       console.log('Could not read generic image file.');
       rejectGenericSaved(err);
@@ -13,5 +15,5 @@ module.exports = (i, destination) => new Promise((resolveGenericSaved, rejectGen
       resolveGenericSaved(destination);
     });
   });
-})
+});
 
