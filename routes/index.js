@@ -30,6 +30,10 @@ if (!fileExists(DATA_JSON)) {
   retriesRemaining--;
   }, 5000);
 }
+else {
+  readJsonFile(DATA_JSON);
+}
+
 
 // Read json every x minutes.
 setInterval(() => {
