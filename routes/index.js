@@ -1,29 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
+const fileExists = require(__dirname + './../scraper/modules/fileExists');
 const DATA_JSON = './data.json';
 const minutes = 2, readJsonInterval = minutes * 60 * 1000;
 
 let obj;
 
 const readJsonFile = (jsonFile) => {
-  let retriesRemaining = 5;
-  fs.readFile(jsonFile, (err, data) => {
-    if (err) {
-      if (retriesRemaining > 0) {
-        retriesRemaining--;
-        setTimeout(readJsonFile(DATA_JSON), 2000);
-      }
-      else {
-        throw err;
-      }
-    }
-    obj = JSON.parse(data);
+  fs.readFile(jsonFile, 'utf8', (err, data) => {
+    if (err) throw err;
+  obj = JSON.parse(data);
   });
 }
 
 // Read json on server start.
-readJsonFile(DATA_JSON);
+let retriesRemaining = 20;
+if (!fileExists(DATA_JSON)) {
+  let startupInterval = setInterval(() => {
+  console.log('Looking for ' + DATA_JSON + '. Retries remaining: ' + retriesRemaining);
+    if (fileExists(DATA_JSON)) {
+      console.log('Found ' + DATA_JSON + '.');
+      readJsonFile(DATA_JSON);
+      clearInterval(startupInterval);
+    }
+    else if (retriesRemaining === 0) {
+      clearInterval(startupInterval);
+    }
+  retriesRemaining--;
+  }, 5000);
+}
 
 // Read json every x minutes.
 setInterval(() => {
