@@ -10,13 +10,15 @@ const sanitizeImageURL = require('./sanitizeImageURL');
 const fileExists = require('./fileExists');
 const fetchImage = require('./fetchImage');
 const compressImage = require('./compressImage');
+const dev = process.env.NODE_ENV === 'development' ? true : false;
 
 module.exports = () => new Promise((resolveRoot, rejectRoot) => {
   // Initialize object to store all data.
   let obj = objectCreator();
   let scrapeArticle;
 
-  console.log('Scraper started.\n');
+  console.log('────────────────');
+  console.log('Scraper started.');
   console.time('Scraper finished in');
 
   new Promise((resolveAllArticles, rejectAllArticles) => {
@@ -40,7 +42,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
 
               metascraper.scrapeUrl(url).then((metaData) => {
 
-                console.log('Scraped article: ' + i + '.');
+                if (dev) console.log('Scraped article: ' + i + '.');
                 obj = storeArticleData(obj, json, metaData, i);
                 const img = sanitizeImageURL(metaData.image, i);
 
@@ -63,10 +65,10 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
             compressImage(obj[i], i).then(result => {
               obj[i] = result;
               articlesReceived++;
-              console.log(articlesReceived + '/' + constants.ARTICLES_TO_SCRAPE);
+              if (dev) console.log(articlesReceived + '/' + constants.ARTICLES_TO_SCRAPE);
 
               if (articlesReceived === constants.ARTICLES_TO_SCRAPE - 1) {
-                console.log('All articles complete.\n');
+                if (dev) console.log('All articles complete.\n');
                 resolveAllArticles(obj);
               }
             }).catch(err => {
@@ -95,10 +97,8 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
       });
 
   }).then(obj => {
-    console.log('----------');
     console.log('Current server time: ' + timestamp());
     console.timeEnd('Scraper finished in');
-    console.log('----------\n');
     resolveRoot(obj); // export obj
   }).catch(err => {
     // No more possible articles to scrape

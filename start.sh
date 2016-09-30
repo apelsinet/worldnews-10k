@@ -5,5 +5,5 @@
 # daemon starts the server.
 ############################
 
-forever start -a -e scraperErr.log -o scraperOut.log job.js
+NODE_ENV=production forever start -a -e scraperErr.log -o scraperOut.log job.js
 NODE_ENV=production forever start -a -e serverErr.log -o serverOut.log ./bin/www

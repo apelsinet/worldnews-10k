@@ -9,8 +9,12 @@
     "url": "apelsi.net"
   },
   "scripts": {
-    "start": "NODE_ENV=production node ./bin/www",
-    "debug": "NODE_ENV=development DEBUG=worldnews-10k:* node ./bin/www",
+    "start": "sh start.sh",
+    "stop": "forever stopall",
+    "server": "NODE_ENV=production node ./bin/www",
+    "job": "NODE_ENV=production node ./job.js",
+    "server-debug": "NODE_ENV=development DEBUG=worldnews-10k:* node ./bin/www",
+    "job-debug": "NODE_ENV=development node ./job.js",
     "test": "NODE_ENV=test mocha"
   },
   "dependencies": {

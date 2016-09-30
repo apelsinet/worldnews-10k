@@ -2,6 +2,7 @@ const fs = require('fs');
 const Jimp = require('jimp');
 const constants = require('../constants');
 const fileExists = require('../fileExists');
+const dev = process.env.NODE_ENV === 'development' ? true : false;
 
 module.exports = (obj, i) => new Promise((resolveRoot, rejectRoot) => {
 
@@ -19,7 +20,7 @@ module.exports = (obj, i) => new Promise((resolveRoot, rejectRoot) => {
       image.resize(640, Jimp.AUTO)
         .quality(70)
         .write(constants.DIST_IMG_FULL + i + '.jpg');
-      console.log('High res version of image: ' + i + ' written.');
+      if (dev) console.log('High res version of image: ' + i + ' written.');
       obj.imgFull = constants.DIST_IMG_FULL + i + '.jpg';
 
       // encode base64 preview
@@ -29,13 +30,13 @@ module.exports = (obj, i) => new Promise((resolveRoot, rejectRoot) => {
         .getBase64(Jimp.MIME_PNG, (err, result) => {
           if (err) base64reject();
           obj.imgBase64 = result;
-          console.log('Base64 of image: ' + i + ' encoded.');
+          if (dev) console.log('Base64 of image: ' + i + ' encoded.');
           resolveBase64();
         });
     });
   }).then(() => {
     // successfully compressed image
-    console.log('Image ' + i + ' complete.');
+    if (dev) console.log('Image ' + i + ' complete.');
     resolveRoot(obj);
   }).catch(err => {
     console.log('Error compressing image ' + i + '.');
