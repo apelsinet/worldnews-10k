@@ -32,5 +32,9 @@
     "read-chunk": "^2.0.0",
     "rimraf": "^2.5.4",
     "serve-favicon": "~2.3.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-http": "^3.0.0"
   }
 }
