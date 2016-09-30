@@ -1,7 +1,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const should = chai.should();
-const fileExists = require('../');
+const fileExists = require('../scraper/fileExists');
 
 describe('Module fileExists', function() {
   it('should always return a boolean', function() {
@@ -11,11 +11,8 @@ describe('Module fileExists', function() {
     expect(fileExists('test')).to.be.a('boolean');
     expect(fileExists({})).to.be.a('boolean');
   });
-  it('should return false if given a file that doesnt exist', function() {
+  it('should only return true if given a file that exists', function() {
     expect(fileExists('./bogusFile.txt')).to.equal(false);
-
-  });
-  it('should return true if given a file that exists', function() {
     expect(fileExists('./index.js')).to.equal(true);
   });
 });
