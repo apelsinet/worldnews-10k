@@ -56,7 +56,7 @@ module.exports = (obj, json, metaData, i) => {
     if (obj[i].desc.length > 300) {
       obj[i].desc = shortenString(obj[i].desc, 300);
     }
-    obj[i].desc = fixQuotes(metaData.description);
+    obj[i].desc = fixQuotes(obj[i].desc);
   }
 
   else if (tooLongTitle == true) {

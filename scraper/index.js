@@ -25,7 +25,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
 
     cleanFolder(constants.IMG_DIR);
 
-    fetch('https://www.reddit.com/r/worldnews/.json?limit=' + constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES)
+    fetch('https://www.reddit.com/r/worldnews/.json?limit=' + (constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES))
       .then(jsonResponse => {
         return jsonResponse.json();
       })
