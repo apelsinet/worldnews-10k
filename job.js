@@ -4,13 +4,12 @@ const fs = require('fs');
 const DATA_JSON = './data.json';
 const minutes = 5, scraperInterval = minutes * 60 * 1000;
 
-if (fileExists(DATA_JSON)) {
-  fs.unlinkSync(DATA_JSON);
-}
+
 
 const runScraper = () => {
   let retriesRemaining = 5;
   scraper().then(result => {
+    if (fileExists(DATA_JSON)) fs.unlinkSync(DATA_JSON);
     fs.writeFile(DATA_JSON, JSON.stringify(result), (err) => {
       if (err) {
         if (retriesRemaining > 0) {

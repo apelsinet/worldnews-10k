@@ -13,8 +13,8 @@
     "stop": "forever stopall",
     "server": "NODE_ENV=production node ./bin/www",
     "job": "NODE_ENV=production node ./job.js",
-    "server-debug": "NODE_ENV=development DEBUG=worldnews-10k:* node ./bin/www",
-    "job-debug": "NODE_ENV=development node ./job.js",
+    "debug:server": "NODE_ENV=development DEBUG=worldnews-10k:* node ./bin/www",
+    "debug:job": "NODE_ENV=development node ./job.js",
     "test": "NODE_ENV=test mocha"
   },
   "dependencies": {

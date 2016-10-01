@@ -67,7 +67,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
               articlesReceived++;
               if (dev) console.log(articlesReceived + '/' + constants.ARTICLES_TO_SCRAPE);
 
-              if (articlesReceived === constants.ARTICLES_TO_SCRAPE - 1) {
+              if (articlesReceived === constants.ARTICLES_TO_SCRAPE) {
                 if (dev) console.log('All articles complete.\n');
                 resolveAllArticles(obj);
               }
