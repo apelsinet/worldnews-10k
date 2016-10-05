@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "repository": "apelsinet/worldnews-10k",
+  "homepage": "https://readworld.news",
   "author": {
     "name": "Mattias Prada",
     "email": "mattiasprada@gmail.com",
-    "url": "apelsi.net"
+    "url": "http://apelsi.net"
   },
   "scripts": {
     "start": "sh start.sh",
@@ -26,7 +27,6 @@
     "express": "~4.13.4",
     "file-type": "^3.8.0",
     "jimp": "^0.2.27",
-    "jsonfile": "^2.3.1",
     "metascraper": "^1.0.6",
     "morgan": "~1.7.0",
     "node-fetch": "^1.6.0",
