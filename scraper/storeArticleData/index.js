@@ -41,7 +41,7 @@ module.exports = (obj, json, metaData, i, scrapeExtraArticle, isExtraArticle) =>
   let jsonNumber = i;
 
   if (isExtraArticle) {
-    jsonNumber = (constants.ARTICLES_TO_SCRAPE + scrapeExtraArticle);
+    jsonNumber = (constants.ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle);
   }
 
   obj[i].url = json.data.children[jsonNumber].data.url;
