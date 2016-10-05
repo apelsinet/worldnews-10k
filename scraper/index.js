@@ -36,29 +36,23 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
 
         for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
 
-          new Promise((resolveFetch, rejectFetch) => {
+          scrapeArticle = (url, i) => new Promise((resolveFetch, rejectFetch) => {
 
-            scrapeArticle = (url, i) => {
+            metascraper.scrapeUrl(url).then((metaData) => {
 
-              metascraper.scrapeUrl(url).then((metaData) => {
+              if (dev) console.log('Scraped article: ' + i + '.');
+              obj = storeArticleData(obj, json, metaData, i);
+              const img = sanitizeImageURL(metaData.image, i);
 
-                if (dev) console.log('Scraped article: ' + i + '.');
-                obj = storeArticleData(obj, json, metaData, i);
-                const img = sanitizeImageURL(metaData.image, i);
-
-                fetchImage(img, i).then(fileName => {
-                  resolveFetch(i);
-                });
-
-              }).catch(err => {
-                console.log('Could not scrape metadata from: ' + json.data.children[i].data.url);
-                console.log(err);
-                rejectFetch(err);
+              fetchImage(img, i).then(fileName => {
+                resolveFetch(i);
               });
 
-            } //scrapeArticle function
-
-            scrapeArticle(json.data.children[i].data.url, i);
+            }).catch(err => {
+              console.log('Could not scrape metadata from: ' + json.data.children[i].data.url);
+              console.log(err);
+              rejectFetch(err);
+            });
 
           }).then(i => {
             // successfully stored metadata and image
@@ -72,22 +66,24 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
                 resolveAllArticles(obj);
               }
             }).catch(err => {
+              console.log('Could not compress image ' + i);
               console.log(err);
-
-              if (scrapeExtraArticle === constants.EXTRA_ARTICLES) {
-                rejectAllArticles(err);
-              }
-
-              // Catch unscraped article and try to fill object entry with a new article.
-              scrapeExtraArticle++;
-              console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
-              scrapeArticle(json.data.children[(ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle)].data.url, i);
             });
 
           }).catch(err => {
             console.log('Could not fetch article ' + i);
-            console.log(err);
+
+            if (scrapeExtraArticle === constants.EXTRA_ARTICLES) {
+              rejectAllArticles(err);
+            }
+
+            // Catch unscraped article and try to fill object entry with a new article.
+            scrapeExtraArticle++;
+            console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
+            scrapeArticle(json.data.children[(constants.ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle)].data.url, i);
           });
+
+          scrapeArticle(json.data.children[i].data.url, i);
 
         } // for loop
 
