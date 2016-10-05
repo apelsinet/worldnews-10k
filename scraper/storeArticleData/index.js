@@ -1,6 +1,6 @@
 const constants = require('../constants');
 
-module.exports = (obj, json, metaData, i, scrapeExtraArticle) => {
+module.exports = (obj, json, metaData, i, scrapeExtraArticle, isExtraArticle) => {
 
   let removePipe = (title) => {
     let s = title;
@@ -40,7 +40,7 @@ module.exports = (obj, json, metaData, i, scrapeExtraArticle) => {
 
   let jsonNumber = i;
 
-  if (scrapeExtraArticle > 0) {
+  if (isExtraArticle) {
     jsonNumber = (constants.ARTICLES_TO_SCRAPE + scrapeExtraArticle);
   }
 
