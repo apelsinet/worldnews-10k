@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "sh start.sh",
-    "stop": "forever stopall",
+    "stop": "rm data.json && forever stopall",
     "server": "NODE_ENV=production node ./bin/www",
     "job": "NODE_ENV=production node ./job.js",
     "debug:server": "NODE_ENV=development DEBUG=worldnews-10k:* node ./bin/www",
