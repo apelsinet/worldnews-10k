@@ -41,7 +41,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
             metascraper.scrapeUrl(url).then((metaData) => {
 
               if (dev) console.log('Scraped article: ' + i + '.');
-              obj = storeArticleData(obj, json, metaData, i);
+              obj = storeArticleData(obj, json, metaData, i, scrapeExtraArticle);
               const img = sanitizeImageURL(metaData.image, i);
 
               fetchImage(img, i).then(fileName => {

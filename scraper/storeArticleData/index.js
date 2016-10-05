@@ -1,4 +1,6 @@
-module.exports = (obj, json, metaData, i) => {
+const constants = require('../constants');
+
+module.exports = (obj, json, metaData, i, scrapeExtraArticle) => {
 
   let removePipe = (title) => {
     let s = title;
@@ -36,10 +38,16 @@ module.exports = (obj, json, metaData, i) => {
     return s;
   }
 
-  obj[i].url = json.data.children[i].data.url;
+  let jsonNumber = i;
+
+  if (scrapeExtraArticle > 0) {
+    jsonNumber = (constants.ARTICLES_TO_SCRAPE + scrapeExtraArticle);
+  }
+
+  obj[i].url = json.data.children[jsonNumber].data.url;
 
   let tooLongTitle = false;
-  obj[i].title = removePipe(json.data.children[i].data.title);
+  obj[i].title = removePipe(json.data.children[jsonNumber].data.title);
   if (obj[i].title.length > 200 && metaData.title !== undefined && metaData.image !== undefined && metaData.description !== undefined) {
     obj[i].title = removePipe(metaData.title);
   }
@@ -69,8 +77,8 @@ module.exports = (obj, json, metaData, i) => {
     obj[i].desc = '';
   }
 
-  obj[i].comUrl = 'https://www.reddit.com' + json.data.children[i].data.permalink;
-  obj[i].comCount = json.data.children[i].data.num_comments;
+  obj[i].comUrl = 'https://www.reddit.com' + json.data.children[jsonNumber].data.permalink;
+  obj[i].comCount = json.data.children[jsonNumber].data.num_comments;
 
   return obj;
 }

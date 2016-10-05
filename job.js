@@ -3,8 +3,7 @@ const fileExists = require('./scraper/fileExists');
 const fs = require('fs');
 const DATA_JSON = './data.json';
 const minutes = 5, scraperInterval = minutes * 60 * 1000;
-
-
+const dev = process.env.NODE_ENV === 'development' ? true : false;
 
 const runScraper = () => {
   let retriesRemaining = 5;
@@ -21,6 +20,7 @@ const runScraper = () => {
         }
       }
       console.log('JSON file written.');
+      if (dev) console.log(result);
     });
   }).catch(err => {
     console.log(err);
