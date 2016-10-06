@@ -23,8 +23,7 @@ node_modules
 
 # Scraped images.
 scraper/img
-dist/c
-dist/f
+dist/f/*.jpg
 
 # Json object
 data.json
