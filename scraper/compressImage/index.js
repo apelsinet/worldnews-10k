@@ -11,17 +11,16 @@ module.exports = (obj, i) => new Promise((resolveRoot, rejectRoot) => {
     Jimp.read(constants.IMG_DIR + i + '.jpg', (err, image) => {
       if (err) throw err;
 
-      // clean up old file
-      if (fileExists(constants.DIST_IMG_FULL + i + '.jpg')) {
-        fs.unlinkSync(constants.DIST_IMG_FULL + i + '.jpg');
+      // old file with same hash does not exist
+      if (!fileExists(constants.DIST_IMG_FULL + obj.hash + '.jpg')) {
+        // write high res file
+        image.resize(640, Jimp.AUTO)
+          .quality(70)
+          .write(constants.DIST_IMG_FULL + obj.hash + '.jpg');
+        if (dev) console.log('High res version of image: ' + i + ' written.');
       }
 
-      // write high res file
-      image.resize(640, Jimp.AUTO)
-        .quality(70)
-        .write(constants.DIST_IMG_FULL + i + '.jpg');
-      if (dev) console.log('High res version of image: ' + i + ' written.');
-      obj.imgFull = constants.DIST_IMG_FULL + i + '.jpg';
+      obj.imgFull = constants.DIST_IMG_FULL + obj.hash + '.jpg';
 
       // encode base64 preview
       image.resize(16, Jimp.AUTO)

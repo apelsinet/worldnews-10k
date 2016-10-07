@@ -104,7 +104,17 @@ router.get('/', function(req, res, next) {
     a6base64: obj[6].imgBase64,
     a7base64: obj[7].imgBase64,
     a8base64: obj[8].imgBase64,
-    a9base64: obj[9].imgBase64
+    a9base64: obj[9].imgBase64,
+    a0img: '/f/' + obj[0].hash + '.jpg',
+    a1img: '/f/' + obj[1].hash + '.jpg',
+    a2img: '/f/' + obj[2].hash + '.jpg',
+    a3img: '/f/' + obj[3].hash + '.jpg',
+    a4img: '/f/' + obj[4].hash + '.jpg',
+    a5img: '/f/' + obj[5].hash + '.jpg',
+    a6img: '/f/' + obj[6].hash + '.jpg',
+    a7img: '/f/' + obj[7].hash + '.jpg',
+    a8img: '/f/' + obj[8].hash + '.jpg',
+    a9img: '/f/' + obj[9].hash + '.jpg'
   });
 });
 

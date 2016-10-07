@@ -44,7 +44,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
               obj = storeArticleData(obj, json, metaData, i, scrapeExtraArticle, isExtraArticle);
               const img = sanitizeImageURL(metaData.image, i);
 
-              fetchImage(img, i).then(fileName => {
+              fetchImage(obj[i], img, i).then(() => {
                 resolveFetch(i);
               });
 

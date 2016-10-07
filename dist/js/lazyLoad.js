@@ -3,9 +3,10 @@ var loadImage = function(i) {
   var dl = new Image();
   dl.onload = function() {
     img.src = this.src;
+    img.setAttribute('data-src', '');
     document.getElementById(i).className = '';
   };
-  dl.src = '/f/' + i + '.jpg';
+  dl.src = img.getAttribute('data-src');
 }
 
 var lazyLoad = function () {

@@ -2,7 +2,7 @@ const constants = require('../constants');
 
 let obj = [];
 class Article {
-  constructor(id, url, title, desc, comUrl, comCount, imgFull, imgBase64) {
+  constructor(id, url, title, desc, comUrl, comCount, imgFull, imgBase64, hash) {
     this.id = id;
     this.url = url;
     this.title = title;
@@ -11,6 +11,7 @@ class Article {
     this.comCount = comCount;
     this.imgFull = imgFull;
     this.imgBase64 = imgBase64;
+    this.hash = hash;
   }
 }
 

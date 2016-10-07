@@ -2,6 +2,7 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const fileType = require('file-type');
 const Jimp = require('jimp');
+const crypto = require('crypto');
 const constants = require('../constants');
 const fileExists = require('../fileExists');
 const writeGenericImage = require('../writeGenericImage');
@@ -9,11 +10,11 @@ const dev = process.env.NODE_ENV === 'development' ? true : false;
 
 const filePath = constants.IMG_DIR;
 
-module.exports = (url, i) => new Promise((resolveRoot, rejectRoot) => {
+module.exports = (obj, url, i) => new Promise((resolveRoot, rejectRoot) => {
 
   if (url === false) {
     if (dev) console.log('No url for image ' + i);
-    writeGenericImage(i, filePath + i + '.jpg').then(file => {
+    writeGenericImage(obj, i, filePath + i + '.jpg').then(file => {
       resolveRoot(file);
     });
   }
@@ -24,6 +25,7 @@ module.exports = (url, i) => new Promise((resolveRoot, rejectRoot) => {
       return res.buffer();
     }).then(buffer => {
 
+      obj.hash = crypto.createHash('md5').update(buffer).digest('hex').slice(0, 10);
       let fileExtension = fileType(buffer).ext;
 
       if (fileExtension === 'jpg' || fileExtension === 'png') {
@@ -49,12 +51,12 @@ module.exports = (url, i) => new Promise((resolveRoot, rejectRoot) => {
         }).then((fileName) => {
           // fetched image written ok
           if (dev) console.log('Saved image: ' + i + '.');
-          resolveRoot(fileName);
+          resolveRoot();
         }).catch(err => {
           // could not write file
           console.error(err);
-          writeGenericImage(i, filePath + i + '.jpg').then(file => {
-            resolveRoot(file);
+          writeGenericImage(obj, i, filePath + i + '.jpg').then(fileName => {
+            resolveRoot();
           });
         });
 
@@ -63,16 +65,16 @@ module.exports = (url, i) => new Promise((resolveRoot, rejectRoot) => {
       else {
         // not a jpg or png
         if (dev) console.log('Image ' + i + ' is not a jpg or png.');
-        writeGenericImage(i, filePath + i + '.jpg').then(file => {
-          resolveRoot(file);
+        writeGenericImage(obj, i, filePath + i + '.jpg').then(fileName => {
+          resolveRoot();
         });
       }
 
     }).catch(err => {
       // could not fetch url
       console.error(err);
-      writeGenericImage(i, filePath + i + '.jpg').then(file => {
-        resolveRoot(file);
+      writeGenericImage(obj, i, filePath + i + '.jpg').then(fileName => {
+        resolveRoot();
       });
     });
 
