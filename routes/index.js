@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const fileExists = require('../scraper/fileExists');
+const staticAsset = require('../dist/hashStaticAssets');
 const DATA_JSON = './data.json';
 const minutes = 2, readJsonInterval = minutes * 60 * 1000;
 
@@ -45,6 +46,8 @@ router.get('/', function(req, res, next) {
 
   res.render('index', {
     title: 'WorldNews 10K',
+    jsHash: '/js/' + staticAsset.jsHash + '.js',
+    cssHash: '/css/' + staticAsset.cssHash + '.css',
     a0title: obj[0].title,
     a1title: obj[1].title,
     a2title: obj[2].title,

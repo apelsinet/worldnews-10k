@@ -26,8 +26,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(require('node-sass-middleware')({
-  src: path.join(__dirname, 'dist'),
-  dest: path.join(__dirname, 'dist'),
+  src: path.join(__dirname, 'dist/css/'),
+  dest: path.join(__dirname, 'dist/css/'),
   indentedSyntax: true,
   sourceMap: false,
   outputStyle: 'compressed',
