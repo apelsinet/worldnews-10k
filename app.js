@@ -5,7 +5,7 @@ const favicon = require('serve-favicon');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-
+const dev = process.env.NODE_ENV === 'development' ? true : false;
 const routes = require('./routes/index');
 
 const app = express();
@@ -20,19 +20,21 @@ app.use(favicon(path.join(__dirname, 'dist', 'favicon.ico')));
 app.use(compression({
   level: 9,
   threshold: 100,
-  }));
+}));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(require('node-sass-middleware')({
-  src: path.join(__dirname, 'dist/css/'),
-  dest: path.join(__dirname, 'dist/css/'),
-  indentedSyntax: true,
-  sourceMap: false,
-  outputStyle: 'compressed',
-  maxAge: CACHE_TIME
-}));
+if (dev) {
+  app.use(require('node-sass-middleware')({
+    src: path.join(__dirname, 'dist/css/'),
+    dest: path.join(__dirname, 'dist/css/'),
+    indentedSyntax: true,
+    sourceMap: false,
+    outputStyle: 'compressed',
+    maxAge: CACHE_TIME
+  }));
+}
 app.use(express.static(path.join(__dirname, 'dist'), {maxAge: CACHE_TIME}));
 
 app.use('/', routes);
