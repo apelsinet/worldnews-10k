@@ -4,11 +4,10 @@ const fetch = require('node-fetch');
 const timestamp = require('console-timestamp');
 const constants = require('./constants');
 const objectCreator = require('./objectCreator');
-const cleanFolder = require('./cleanFolder');
 const storeArticleData = require('./storeArticleData');
 const sanitizeImageURL = require('./sanitizeImageURL');
 const fileExists = require('./fileExists');
-const fetchImage = require('./fetchImage');
+const fetchAndStoreImage = require('./fetchAndStoreImage');
 const compressImage = require('./compressImage');
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 
@@ -22,8 +21,6 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
   console.time('Scraper finished in');
 
   new Promise((resolveAllArticles, rejectAllArticles) => {
-
-    cleanFolder(constants.IMG_DIR);
 
     fetch('https://www.reddit.com/r/worldnews/.json?limit=' + (constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES))
       .then(jsonResponse => {
@@ -40,23 +37,23 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
 
             metascraper.scrapeUrl(url).then((metaData) => {
 
-              if (dev) console.log('Scraped article: ' + i + '.');
+              if (dev) console.log(i + '. Scraped article.');
               obj = storeArticleData(obj, json, metaData, i, scrapeExtraArticle, isExtraArticle);
               const img = sanitizeImageURL(metaData.image, i);
 
-              fetchImage(obj[i], img, i).then(() => {
-                resolveFetch(i);
+              fetchAndStoreImage(img, i).then((fileName) => {
+                resolveFetch(fileName);
               });
 
             }).catch(err => {
-              console.log('Could not scrape metadata from: ' + json.data.children[i].data.url);
+              console.log(i + '. Could not scrape metadata from: ' + json.data.children[i].data.url);
               console.log(err);
               rejectFetch(err);
             });
 
-          }).then(i => {
+          }).then(fileName => {
             // successfully stored metadata and image
-            compressImage(obj[i], i).then(result => {
+            compressImage(obj[i], fileName, i).then(result => {
               obj[i] = result;
               articlesReceived++;
               if (dev) console.log(articlesReceived + '/' + constants.ARTICLES_TO_SCRAPE);

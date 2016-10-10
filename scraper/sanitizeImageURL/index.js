@@ -1,8 +1,8 @@
 module.exports = (imgURL, i) => {
   let img = imgURL;
   if (img == undefined || img == '') {
-    console.log('Image for article ' + i + ' not found.');
-    return false;
+    console.log(i + '. Image for article ' + i + ' not found.');
+    return '';
   }
   return img;
 }

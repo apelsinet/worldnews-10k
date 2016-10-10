@@ -15,10 +15,10 @@ describe('Module fetchAndStoreImage', () => {
     });
   });
 
-  it('should resolve a full image file path that uses the hashed version of the input url as file name, or reject with an error', (done) => {
+  it('should resolve image file name that uses the hashed version of the input url as file name, or reject with an error', (done) => {
     fetchAndStoreImage(url).then(result => {
       expect(typeof result).to.equal('string');
-      expect(result).to.equal(constants.IMG_DIR + hashedUrl + '.jpg');
+      expect(result).to.equal(hashedUrl + '.jpg');
       done();
     });
     fetchAndStoreImage(0).catch(err => {
@@ -42,21 +42,19 @@ describe('Module fetchAndStoreImage', () => {
   });
 
   describe('function fetchImage', () => {
-    it('should fetch image from url and return it within a buffer', (done) => {
+    it('should fetch image from url and return it as a buffer', (done) => {
       fetchAndStoreImage.fetchImage(url).then(result => {
         expect(result instanceof Buffer).to.be.true;
         done();
       });
     });
-    it('should return false if url string is empty', (done) => {
-      fetchAndStoreImage.fetchImage('').catch(boolean => {
-        expect(boolean).to.be.false;
+    it('should reject if url string is empty', (done) => {
+      fetchAndStoreImage.fetchImage('').catch(() => {
         done();
       });
     });
-    it('should return false if node-fetch gives an error', (done) => {
-      fetchAndStoreImage.fetchImage(fakeUrl).catch(boolean => {
-        expect(boolean).to.be.false;
+    it('should reject if node-fetch gives an error', (done) => {
+      fetchAndStoreImage.fetchImage(fakeUrl).catch(() => {
         done();
       });
     });
