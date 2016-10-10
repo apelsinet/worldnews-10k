@@ -13,7 +13,7 @@ describe('Module cleanFolder', function() {
     if (!fileExists(dummyFolder)) {
       fs.mkdirSync(dummyFolderPath);
     }
-    fs.writeFileSync(dummyFile, fs.readFileSync('./test/server.js', 'utf8'));
+    fs.writeFileSync(dummyFile, fs.readFileSync('./test/cleanFolder.js', 'utf8'));
     expect(fileExists(dummyFile)).to.equal(true);
     cleanFolder(dummyFolderPath);
     expect(fileExists(dummyFile)).to.equal(false);
