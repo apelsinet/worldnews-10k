@@ -5,6 +5,8 @@ const timestamp = require('console-timestamp');
 const constants = require('./constants');
 const objectCreator = require('./objectCreator');
 const storeArticleData = require('./storeArticleData');
+const hashString = require('./hashString');
+const scraperCacheWrite = require('./scraperCacheWrite');
 const sanitizeImageURL = require('./sanitizeImageURL');
 const fileExists = require('./fileExists');
 const fetchAndStoreImage = require('./fetchAndStoreImage');
@@ -40,6 +42,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
               if (dev) console.log(i + '. Scraped article.');
               obj = storeArticleData(obj, json, metaData, i, scrapeExtraArticle, isExtraArticle);
               const img = sanitizeImageURL(metaData.image, i);
+              scraperCacheWrite(hashString(url), obj[i].title, obj[i].desc, img);
 
               fetchAndStoreImage(img, i).then((fileName) => {
                 resolveFetch(fileName);
