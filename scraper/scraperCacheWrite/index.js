@@ -36,7 +36,6 @@ module.exports = (hash, title, description, imgUrl) => {
   }
   else {
     // cached article entry already exists
-    if (dev) console.log('Cached article entry already exists.');
     return;
   }
 }

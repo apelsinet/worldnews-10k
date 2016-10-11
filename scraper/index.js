@@ -6,6 +6,7 @@ const constants = require('./constants');
 const objectCreator = require('./objectCreator');
 const storeArticleData = require('./storeArticleData');
 const hashString = require('./hashString');
+const scraperCacheRead = require('./scraperCacheRead');
 const scraperCacheWrite = require('./scraperCacheWrite');
 const sanitizeImageURL = require('./sanitizeImageURL');
 const fileExists = require('./fileExists');
@@ -36,10 +37,28 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
         for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
 
           scrapeArticle = (url, i, isExtraArticle) => new Promise((resolveFetch, rejectFetch) => {
+            let metaData;
 
-            metascraper.scrapeUrl(url).then((metaData) => {
+            new Promise((resolveCacheOrScraper, rejectCacheOrScraper) => {
+              scraperCacheRead(hashString(url)).then(result => {
 
-              if (dev) console.log(i + '. Scraped article.');
+                if (dev) console.log(i + '. Loaded article from cache.');
+                resolveCacheOrScraper(result);
+
+              }).catch(() => {
+
+                metascraper.scrapeUrl(url).then((result) => {
+                  if (dev) console.log(i + '. Scraped article.');
+                  resolveCacheOrScraper(result);
+                }).catch(err => {
+                  console.log(i + '. Could not scrape metadata from: ' + json.data.children[i].data.url);
+                  console.error(err);
+                  rejectCacheOrScraper(err);
+                });
+
+              });
+            }).then((metaData) => {
+
               obj = storeArticleData(obj, json, metaData, i, scrapeExtraArticle, isExtraArticle);
               const img = sanitizeImageURL(metaData.image, i);
               scraperCacheWrite(hashString(url), obj[i].title, obj[i].desc, img);
@@ -48,9 +67,8 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
                 resolveFetch(fileName);
               });
 
-            }).catch(err => {
-              console.log(i + '. Could not scrape metadata from: ' + json.data.children[i].data.url);
-              console.log(err);
+            }).catch((err) => {
+              // metascraper failed
               rejectFetch(err);
             });
 
@@ -98,7 +116,7 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
     resolveRoot(obj); // export obj
   }).catch(err => {
     // No more possible articles to scrape
-    console.log('Could not complete ' + constants.ARTICLES_TO_SCRAPE + ' out of ' + constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES + ' possible articles.');
+    console.log('Could not complete ' + constants.ARTICLES_TO_SCRAPE + ' out of ' + (constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES) + ' possible articles.');
     console.log(err);
     rejectRoot(err);
   });
