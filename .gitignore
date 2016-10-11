@@ -27,3 +27,4 @@ dist/f/*.jpg
 
 # Json object
 data.json
+scraperCache.json
