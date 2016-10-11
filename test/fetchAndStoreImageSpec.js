@@ -4,7 +4,7 @@ const fs = require('fs');
 const fetchAndStoreImage = require('../scraper/fetchAndStoreImage');
 const constants = require('../scraper/constants');
 const url = 'https://assets-cdn.github.com/images/modules/logos_page/Octocat.png';
-const hashedUrl = 'fe7ef0ff609e9abc2bc87e94f0ecd15b';
+const hashedUrl = 'fe7ef0ff60';
 const fakeUrl = 'http://fakeurl.jpg';
 
 describe('Module fetchAndStoreImage', () => {

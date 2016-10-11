@@ -16,7 +16,7 @@
     "job": "NODE_ENV=production node ./job.js",
     "debug:server": "NODE_ENV=development DEBUG=worldnews-10k:* node ./bin/www",
     "debug:job": "NODE_ENV=development node ./job.js",
-    "test": "NODE_ENV=test mocha"
+    "test": "NODE_ENV=test mocha -w"
   },
   "dependencies": {
     "body-parser": "~1.15.1",
