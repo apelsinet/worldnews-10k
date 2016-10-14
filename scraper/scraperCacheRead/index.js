@@ -3,18 +3,19 @@ const fileExists = require('../fileExists');
 const cacheFilePath = './scraperCache.json';
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 
-module.exports = (hash, i) => new Promise((resolve, reject) => {
+module.exports = (hash, id) => new Promise((resolve, reject) => {
   if (fileExists(cacheFilePath)) {
     // Read parse and return
     fs.readFile(cacheFilePath, 'utf8', (err, data) => {
       if (err) reject(err);
-      let obj = JSON.parse(data);
+      const obj = JSON.parse(data);
       if (obj[hash] !== undefined) {
-        if (dev) console.log(i + '. Loaded article from cache.');
+        if (dev) console.log(id + '. Loaded article from cache.');
         resolve({
           title: obj[hash].title,
           description: obj[hash].description,
-          image: obj[hash].imgUrl
+          image: obj[hash].imgUrl,
+          base64: obj[hash].base64
         });
       }
       // No cached entry for this article

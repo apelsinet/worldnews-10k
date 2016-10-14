@@ -18,18 +18,19 @@ const checkCacheFile = (filePath) => {
 }
 
 class Article {
-  constructor(hash, title, description, imgUrl) {
+  constructor(hash, title, description, imgUrl, base64) {
     this.hash = hash;
     this.title = title;
     this.description = description;
     this.imgUrl = imgUrl;
+    this.base64 = base64;
   }
 }
 
-module.exports = (hash, title, description, imgUrl) => {
+module.exports = (hash, title, description, imgUrl, base64) => {
   let obj = checkCacheFile(cacheFilePath);
   if (obj[hash] === undefined) {
-    obj[hash] = new Article(hash, title, description, imgUrl);
+    obj[hash] = new Article(hash, title, description, imgUrl, base64);
     fs.writeFileSync(cacheFilePath, JSON.stringify(obj));
     if (dev) console.log(cacheFilePath + ' written.');
     return;

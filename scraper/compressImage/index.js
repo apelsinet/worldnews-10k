@@ -4,45 +4,53 @@ const constants = require('../constants');
 const fileExists = require('../fileExists');
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 
-module.exports = (obj, fileName, i) => new Promise((resolveRoot, rejectRoot) => {
-  
-  const filePath = constants.IMG_DIR + fileName;
+const processImage = (article) => new Promise((resolve, reject) => {
 
-  new Promise((resolveBase64, rejectBase64) => {
+  const srcFilePath = constants.IMG_DIR + article.imgFileName;
+  const destFilePath = constants.DIST_IMG_FULL + article.imgFileName;
 
-    Jimp.read(filePath, (err, image) => {
-      if (err) throw err;
+  // old file with same hash does not exist, or base64 is not cached
+  if (!fileExists(destFilePath) || article.imgBase64 === undefined) {
 
-      // old file with same hash does not exist
-      if (!fileExists(constants.DIST_IMG_FULL + fileName)) {
+    Jimp.read(srcFilePath, (err, image) => {
+      if (err) reject(err);
+
+      if (!fileExists(destFilePath)) {
         // write high res file
         image.resize(640, Jimp.AUTO)
           .quality(70)
-          .write(constants.DIST_IMG_FULL + fileName);
-        if (dev) console.log(i + '. High res version of image: ' + fileName + ' written.');
+          .write(destFilePath);
+        if (dev) console.log(article.id + '. High res version of image: ' + article.imgFileName + ' written.');
       }
-
-      obj.imgFull = fileName;
 
       // encode base64 preview
       image.resize(16, Jimp.AUTO)
         .rgba(false)
         .deflateLevel(1)
         .getBase64(Jimp.MIME_PNG, (err, result) => {
-          if (err) base64reject();
-          obj.imgBase64 = result;
-          if (dev) console.log(i + '. Base64 of image: ' + fileName + ' encoded.');
-          resolveBase64();
+          if (err) reject(err);
+          if (dev) console.log(article.id + '. Base64 of image: ' + article.imgFileName + ' encoded.');
+          resolve(result);
         });
     });
-  }).then(() => {
+  }
+  else {
+    if (dev) console.log(article.id + '. Image and Base64 loaded from cache.');
+    resolve(article.imgBase64);
+  }
+
+});
+
+module.exports = (article) => new Promise((resolve, reject) => {
+
+  processImage(article).then((base64) => {
+    const imgBase64 = {imgBase64: base64};
     // successfully compressed image
-    if (dev) console.log(i + '. Image ' + fileName + ' complete.');
-    resolveRoot(obj);
+    if (dev) console.log(article.id + '. Image ' + article.imgFileName + ' processed.');
+    resolve(Object.assign({}, article, imgBase64));
   }).catch(err => {
-    console.log(i + '. Error compressing image ' + fileName + '.');
-    console.log(err);
-    rejectRoot(obj);
+    console.error(article.id + '. Error processing image ' + article.imgFileName + '.');
+    reject(err);
   });
 })
 

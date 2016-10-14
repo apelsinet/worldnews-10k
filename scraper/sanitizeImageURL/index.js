@@ -1,7 +1,7 @@
-module.exports = (imgURL, i) => {
-  let img = imgURL;
+module.exports = (imgURL, id) => {
+  const img = imgURL;
   if (img == undefined || img == '') {
-    console.log(i + '. Image for article ' + i + ' not found.');
+    console.log(id + '. Image for article not found.');
     return '';
   }
   return img;

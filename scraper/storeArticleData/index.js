@@ -1,85 +1,104 @@
 const constants = require('../constants');
+const sanitizeImageURL = require('../sanitizeImageURL');
 
-module.exports = (obj, json, metaData, i, scrapeExtraArticle, isExtraArticle) => {
+const removePipe = (title) => {
+  const s = title;
+  const n = s.indexOf('|');
+  return s.substring(0, n !== -1 ? n : s.length);
+}
 
-  let removePipe = (title) => {
-    let s = title;
-    var n = s.indexOf('|');
-    s = s.substring(0, n !== -1 ? n : s.length);
-    return s;
-  }
+const shortenString = (string, threshold) => {
+  const s = string;
+  const n = s.indexOf(' ', threshold);
+  return s.substring(0, n !== -1 ? n : s.length).concat(' ...');
+}
 
-  let shortenString = (string, threshold) => {
-    let s = string;
-    var n = s.indexOf(' ', threshold);
-    s = s.substring(0, n !== -1 ? n : s.length);
-    s = s.concat(' ...');
-    return s;
-  }
-
-  let fixQuotes = (string) => {
-    let s = string;
-    let stringReplacer = (quoteType) => {
-      let count = 0;
-      while(s.indexOf(quoteType) !== -1) {
-        if (count % 2 === 0) {
-          s = s.replace(quoteType, '\u201C');
-        }
-        else {
-          s = s.replace(quoteType, '\u201D');
-        }
-        count++;
+// Mutation
+const fixQuotes = (string) => {
+  let s = string;
+  let stringReplacer = (quoteType) => {
+    let count = 0;
+    while(s.indexOf(quoteType) !== -1) {
+      if (count % 2 === 0) {
+        s = s.replace(quoteType, '\u201C');
       }
+      else {
+        s = s.replace(quoteType, '\u201D');
+      }
+      count++;
     }
-    if (s.indexOf('&#34;') !== -1) stringReplacer('&#34;');
-    if (s.indexOf('\u0022') !== -1) stringReplacer('\u0022');
-    if (s.indexOf('&quot;') !== -1) stringReplacer('&quot;');
-    if (s.indexOf('&#x22;') !== -1) stringReplacer('&#x22;');
-    return s;
   }
+  if (s.indexOf('&#34;') !== -1) stringReplacer('&#34;');
+  if (s.indexOf('\u0022') !== -1) stringReplacer('\u0022');
+  if (s.indexOf('&quot;') !== -1) stringReplacer('&quot;');
+  if (s.indexOf('&#x22;') !== -1) stringReplacer('&#x22;');
+  return s;
+}
 
-  let jsonNumber = i;
-
-  if (isExtraArticle) {
-    jsonNumber = (constants.ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle);
+// Mutation
+const processTitle = (redditTitle, scrapedData) => {
+  let t = removePipe(redditTitle);
+  if (t.length > 200 && scrapedData.title !== undefined && scrapedData.image !== undefined && scrapedData.description !== undefined) {
+    t = removePipe(scrapedData.title);
   }
-
-  obj[i].url = json.data.children[jsonNumber].data.url;
-
-  let tooLongTitle = false;
-  obj[i].title = removePipe(json.data.children[jsonNumber].data.title);
-  if (obj[i].title.length > 200 && metaData.title !== undefined && metaData.image !== undefined && metaData.description !== undefined) {
-    obj[i].title = removePipe(metaData.title);
+  if (t.length > 200) {
+    t = shortenString(t, 200);
   }
-  if (obj[i].title.length > 200) {
-    obj[i].title = shortenString(obj[i].title, 200);
-    tooLongTitle = true;
-  }
-  obj[i].title = obj[i].title.trim();
-  obj[i].title = fixQuotes(obj[i].title);
+  t = t.trim();
+  t = fixQuotes(t);
+  return t;
+}
 
-  if (metaData.description !== undefined) {
+// Mutation
+const processDescription = (description, title) => {
+  let d = description;
+  if (d !== undefined) {
     // Trim whitespace and newlines from string.
-    obj[i].desc = metaData.description.trim();
-    if (obj[i].desc.length > 300) {
-      obj[i].desc = shortenString(obj[i].desc, 300);
+    d = d.trim();
+    if (d.length > 300) {
+      d = shortenString(description, 300);
     }
-    obj[i].desc = fixQuotes(obj[i].desc);
+    d = fixQuotes(d);
   }
 
   else {
-    console.log('Article description for article ' + i + ' not found. Using empty string.');
-    obj[i].desc = '';
+    // Description not found, write empty string
+    d = '';
   }
 
-  if (tooLongTitle === true) {
-    console.log('Article title for article ' + i + ' is too long. Removing description.');
-    obj[i].desc = '';
+  if (title.length > 200) {
+    // Title too long, write empty string
+    d = '';
+  }
+  return d;
+}
+
+module.exports = (article, redditData, scrapedData, extraArticles, isExtraArticle) => {
+
+  // Mutation
+  let redditDataNumber = article.id;
+  if (isExtraArticle) {
+    redditDataNumber = (constants.ARTICLES_TO_SCRAPE - 1 + extraArticles);
   }
 
-  obj[i].comUrl = 'https://www.reddit.com' + json.data.children[jsonNumber].data.permalink;
-  obj[i].comCount = json.data.children[jsonNumber].data.num_comments;
+  const url = redditData.data.children[redditDataNumber].data.url;
+  const title = processTitle(redditData.data.children[redditDataNumber].data.title, scrapedData);
+  const description = processDescription(scrapedData.description, title);
 
-  return obj;
+
+  const comUrl = 'https://www.reddit.com' + redditData.data.children[redditDataNumber].data.permalink;
+  const comCount = redditData.data.children[redditDataNumber].data.num_comments;
+  const imgUrl = sanitizeImageURL(scrapedData.image, article.id);
+  const imgBase64 = scrapedData.base64 === undefined ? undefined : scrapedData.base64;
+
+  return {
+    url: url,
+    title: title,
+    description: description,
+    comUrl: comUrl,
+    comCount: comCount,
+    imgUrl: imgUrl,
+    imgBase64: imgBase64
+  }
 }
 

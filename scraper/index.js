@@ -2,22 +2,17 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const timestamp = require('console-timestamp');
 const constants = require('./constants');
-const objectCreator = require('./objectCreator');
-const getData = require('./getData');
-const storeArticleData = require('./storeArticleData');
-const hashString = require('./hashString');
-const scraperCacheWrite = require('./scraperCacheWrite');
-const sanitizeImageURL = require('./sanitizeImageURL');
+const articleConstructor = require('./articleConstructor');
 const fileExists = require('./fileExists');
-const fetchAndStoreImage = require('./fetchAndStoreImage');
+const hashString = require('./hashString');
+const processArticle = require('./processArticle');
 const compressImage = require('./compressImage');
+const scraperCacheWrite = require('./scraperCacheWrite');
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 
 module.exports = () => new Promise((resolveRoot, rejectRoot) => {
 
-
-  // Initialize object to store all data.
-  let obj = objectCreator();
+  let obj = [];
 
   console.log('────────────────');
   console.log('Scraper started.');
@@ -32,31 +27,22 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
     }).then(redditData => {
 
       // Initialize completed article counts
-      let articlesReceived = 0, scrapeExtraArticle = 0;
+      let articlesReceived = 0, extraArticles = 0;
 
       // Start processing of all articles
       for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
 
+        // Construct 1 article with id: i
+        const article = articleConstructor(i);
+
         // Process 1 article
-        let scrapeArticle = (url, i, isExtraArticle) => new Promise((resolveFetch, rejectFetch) => {
-          getData(url, i).then((data) => {
+        processArticle(article, redditData, extraArticles, false).then(processedArticle => {
 
-            obj = storeArticleData(obj, redditData, data, i, scrapeExtraArticle, isExtraArticle);
-            const img = sanitizeImageURL(data.image, i);
-            scraperCacheWrite(hashString(url), obj[i].title, obj[i].desc, img);
-
-            fetchAndStoreImage(img, i).then((fileName) => {
-              resolveFetch(fileName);
-            });
-
-          }).catch((err) => {
-            rejectFetch(err);
-          });
-
-        }).then(fileName => {
           // successfully stored metadata and image
-          compressImage(obj[i], fileName, i).then(result => {
-            obj[i] = result;
+          compressImage(processedArticle).then(final => {
+
+            scraperCacheWrite(hashString(final.url), final.title, final.description, final.imgUrl, final.imgBase64);
+            obj[i] = final;
             articlesReceived++;
             if (dev) console.log(articlesReceived + '/' + constants.ARTICLES_TO_SCRAPE);
 
@@ -64,41 +50,42 @@ module.exports = () => new Promise((resolveRoot, rejectRoot) => {
               if (dev) console.log('All articles complete.\n');
               resolveAllArticles(obj);
             }
+
           }).catch(err => {
-            console.log(i + '. Could not compress image.');
-            console.log(err);
+            console.error(article.id + '. Could not compress image.');
+            console.error(err);
           });
 
         }).catch(err => {
-          console.log(i + '. Could not fetch article.');
+          console.log(article.id + '. Could not complete article.');
+          console.error(err);
 
-          if (scrapeExtraArticle === constants.EXTRA_ARTICLES) {
+          if (extraArticles === constants.EXTRA_ARTICLES) {
             rejectAllArticles(err);
           }
 
           // Catch unscraped article and try to fill object entry with a new article.
-          scrapeExtraArticle++;
-          console.log('\n\nScraping extra article to fill object entry: ' + i + '\n\n');
-          scrapeArticle(redditData.data.children[(constants.ARTICLES_TO_SCRAPE - 1 + scrapeExtraArticle)].data.url, i, true);
+          extraArticles++;
+          console.log('\n\nScraping extra article to fill object entry: ' + article.id + '\n\n');
+          processArticle(article, redditData, extraArticles, true);
         });
-
-        scrapeArticle(redditData.data.children[i].data.url, i, false);
 
       } // for loop
 
     }).catch(err => {
       console.log('Could not fetch json from Reddit API.');
-      console.log(err);
+      console.error(err);
     });
 
   }).then(obj => {
+
     console.log('Current server time: ' + timestamp());
     console.timeEnd('Scraper finished in');
     resolveRoot(obj); // export obj
   }).catch(err => {
     // No more possible articles to scrape
-    console.log('Could not complete ' + constants.ARTICLES_TO_SCRAPE + ' out of ' + (constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES) + ' possible articles.');
-    console.log(err);
+    console.error('Could not complete ' + constants.ARTICLES_TO_SCRAPE + ' out of ' + (constants.ARTICLES_TO_SCRAPE + constants.EXTRA_ARTICLES) + ' possible articles.');
+    console.error(err);
     rejectRoot(err);
   });
 
