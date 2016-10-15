@@ -8,58 +8,60 @@ const dev = process.env.NODE_ENV === 'development' ? true : false;
 
 const imageExistsOnFs = (fileName) => {
   if (fileExists(constants.IMG_DIR + fileName + '.jpg')) return true;
-  return false;
+  else return false;
 }
 
-const fetchImage = (url, i) => new Promise((fetchImageResolve, fetchImageReject) => {
-  if (url === '') fetchImageReject();
+const fetchImage = (url, id) => new Promise((resolve, reject) => {
+  if (url === '') reject();
   else {
     fetch(url).then(res => {
       return res.buffer();
     }).then(buffer => {
-      if (dev) console.log(i + '. Fetched image from: ' + url + '.');
-      fetchImageResolve(buffer);
-    }).catch(() => {
-      console.error(new Error(i + '. Node-fetch could not fetch image from: ' + url));
-      fetchImageReject();
+      if (dev) console.log(id + '. Fetched image from: ' + url + '.');
+      resolve(buffer);
+    }).catch((err) => {
+      console.error(new Error(id + '. Node-fetch could not fetch image from: ' + url));
+      reject(err);
     });
   }
 });
 
-const useGenericImage = (i) => {
-  const genericHash = '6d0be561ab7b1bec054bcf6f747b3592';
+const useGenericImage = (id) => {
+  const genericHash = '6d0be561ab';
   if (!imageExistsOnFs(genericHash)) {
     fs.writeFileSync(constants.IMG_DIR + genericHash + '.jpg', fs.readFileSync('./dist/generic.jpg'));
   }
-  if (dev) console.log(i + '. Using generic image.');
+  if (dev) console.log(id + '. Using generic image.');
   return genericHash;
 }
 
-module.exports = (url, i) => new Promise((rootResolve, rootReject) => {
-  if (typeof url !== 'string') rootReject(new TypeError('Argument url is not a string.'));
+module.exports = (url, id) => new Promise((resolve, reject) => {
+  if (typeof url !== 'string') reject(new TypeError('Argument url is not a string.'));
 
   const hashedUrl = hashString(url);
   module.exports.hashedUrl = hashedUrl;
 
   if (!imageExistsOnFs(hashedUrl)) {
-    fetchImage(url, i).then(buffer => {
-      writeImage(buffer, hashedUrl, i).then(() => {
-        rootResolve(hashedUrl + '.jpg');
+    fetchImage(url, id).then(buffer => {
+      writeImage(buffer, hashedUrl, id).then(() => {
+        resolve(hashedUrl + '.jpg');
       }).catch(() => {
         // could not write image, using generic
-        rootResolve(useGenericImage(i) + '.jpg');
+        resolve(useGenericImage(id) + '.jpg');
       });
     }).catch(() => {
       // could not fetch image, using generic
-      rootResolve(useGenericImage(i) + '.jpg');
+      resolve(useGenericImage(id) + '.jpg');
     });
   }
 
   else {
-    if (dev) console.log(i + '. Image from: ' + url + ' already on fs.');
-    rootResolve(hashedUrl + '.jpg');
+    if (dev) console.log(id + '. Image already on fs.');
+    resolve(hashedUrl + '.jpg');
   }
 
 });
+
 module.exports.imageExistsOnFs = imageExistsOnFs;
 module.exports.fetchImage = fetchImage;
+
