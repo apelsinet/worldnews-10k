@@ -12,7 +12,8 @@ class Article {
   }
 }
 
-module.exports = (i) => {
-  return new Article(i);
+module.exports = (id) => {
+  if (typeof id !== 'number' || id < 0) return false;
+  return new Article(id);
 }
 

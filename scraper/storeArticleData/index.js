@@ -13,26 +13,20 @@ const shortenString = (string, threshold) => {
   return s.substring(0, n !== -1 ? n : s.length).concat(' ...');
 }
 
-// Mutation
 const fixQuotes = (string) => {
-  let s = string;
-  let stringReplacer = (quoteType) => {
-    let count = 0;
-    while(s.indexOf(quoteType) !== -1) {
-      if (count % 2 === 0) {
-        s = s.replace(quoteType, '\u201C');
+  const stringReplacer = (quoteType, string, isEven = true, fromIndex = 0) => {
+    if (string.indexOf(quoteType) !== -1) {
+      if (isEven === true) {
+        return stringReplacer(quoteType, string.replace(quoteType, '\u201C'), false, string.indexOf(quoteType));
       }
       else {
-        s = s.replace(quoteType, '\u201D');
+        return stringReplacer(quoteType, string.replace(quoteType, '\u201D'), true, string.indexOf(quoteType));
       }
-      count++;
     }
+    else return string;
   }
-  if (s.indexOf('&#34;') !== -1) stringReplacer('&#34;');
-  if (s.indexOf('\u0022') !== -1) stringReplacer('\u0022');
-  if (s.indexOf('&quot;') !== -1) stringReplacer('&quot;');
-  if (s.indexOf('&#x22;') !== -1) stringReplacer('&#x22;');
-  return s;
+
+  return stringReplacer('&#34;', stringReplacer('\u0022', stringReplacer('&quot;', stringReplacer('&#x22;', string))));
 }
 
 // Mutation
@@ -102,3 +96,4 @@ module.exports = (article, redditData, scrapedData, extraArticles, isExtraArticl
   }
 }
 
+module.exports.fixQuotes = fixQuotes;

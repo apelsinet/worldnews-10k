@@ -1,8 +1,17 @@
 const chai = require('chai');
 const expect = chai.expect;
-const should = chai.should();
 const storeArticleData = require('../scraper/storeArticleData');
 
+describe('Module storeArticleData', function() {
+  describe('function fixQuotes', function() {
+    it('should return a string with nice looking left and right quote symbols', function() {
+      expect(storeArticleData.fixQuotes('"ugly quotes"')).to.equal('\u201Cugly quotes\u201D');
+      expect(storeArticleData.fixQuotes('"ugly quotes"&quot;more quotes&quot;')).to.equal('\u201Cugly quotes\u201D\u201Cmore quotes\u201D');
+      expect(storeArticleData.fixQuotes('\u201Cnice quotes\u201D')).to.equal('\u201Cnice quotes\u201D');
+    });
+  });
+});
+/*
 // dummy data for testing purposes
 const json = {
   data:{
@@ -51,3 +60,4 @@ describe('Module storeArticleData', function() {
 
   });
 });
+*/
