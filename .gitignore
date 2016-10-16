@@ -21,10 +21,15 @@ node_modules
 # Mac files
 .DS_Store
 
-# Scraped images.
+# Scraped images
 scraper/img/*.jpg
 dist/f/*.jpg
 
 # Json object
 data.json
 scraperCache.json
+
+# Archived files
+archive/*.tar.gz
+archive/*.tar
+archive/*.zip
