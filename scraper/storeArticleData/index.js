@@ -12,13 +12,13 @@ const shortenString = (string, threshold) => {
 }
 
 const fixQuotes = (string) => {
-  const stringReplacer = (quoteType, string, isEven = true, fromIndex = 0) => {
+  const stringReplacer = (quoteType, string, isEven = true) => {
     if (string.indexOf(quoteType) !== -1) {
       if (isEven === true) {
-        return stringReplacer(quoteType, string.replace(quoteType, '\u201C'), false, string.indexOf(quoteType));
+        return stringReplacer(quoteType, string.replace(quoteType, '\u201C'), false);
       }
       else {
-        return stringReplacer(quoteType, string.replace(quoteType, '\u201D'), true, string.indexOf(quoteType));
+        return stringReplacer(quoteType, string.replace(quoteType, '\u201D'), true);
       }
     }
     else return string;
@@ -74,8 +74,6 @@ module.exports = (article, redditData, scrapedData, extraArticles, isExtraArticl
   const url = redditData.data.children[id].data.url;
   const title = processTitle(redditData.data.children[id].data.title, scrapedData, 200);
   const description = processDescription(scrapedData.description, title, 300);
-
-
   const comUrl = 'https://www.reddit.com' + redditData.data.children[id].data.permalink;
   const comCount = redditData.data.children[id].data.num_comments;
   const imgUrl = sanitizeImageURL(scrapedData.image, article.id);

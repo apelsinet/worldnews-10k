@@ -1,3 +1,4 @@
+'use strict';
 const scraper = require('./scraper');
 const fileExists = require('./scraper/fileExists');
 const fs = require('fs');
