@@ -26,7 +26,7 @@ const runScraper = () => {
       }
       console.log('JSON file written.');
       const now = new Date();
-      if (archiverHasRun !== now.getDate()) {
+      if (now.getHours() === 3 && now.getMinutes() <= minutes && archiverHasRun !== now.getDate()) {
         runArchiver(result).then(() => {
           archiverHasRun = now.getDate();
           flushCache();
