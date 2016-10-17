@@ -26,9 +26,10 @@ const runScraper = () => {
       }
       console.log('JSON file written.');
       const now = new Date();
-      if (/*now.getHours() === 3 && now.getMinutes() <= minutes && */archiverHasRun !== now.getDate()) {
+      if (archiverHasRun !== now.getDate()) {
         runArchiver(result).then(() => {
           archiverHasRun = now.getDate();
+          flushCache();
           runScraper();
         }).catch((err) => {
           console.log(err);
@@ -65,13 +66,32 @@ const runArchiver = (data) => new Promise((resolve, reject) => {
 
   archive.pipe(output);
 
-  for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
-    archive.append(fs.createReadStream(constants.IMG_DIR + data[i].imgFileName), {name: data[i].imgFileName});
-  }
-  archive
-    .append(fs.createReadStream('./scraperCache.json'), {name: 'scraperCache.json'})
-    .finalize();
+  fs.readdir(constants.DIST_IMG_FULL, (err, files) => {
+    if (err) reject(err);
+    for (let file of files) {
+      if (file !== 'README.md') {
+        archive.append(fs.createReadStream(constants.DIST_IMG_FULL + file), {name: file});
+      }
+    }
+    archive
+      .append(fs.createReadStream('./scraperCache.json'), {name: 'scraperCache.json'})
+      .finalize();
+  });
 });
+
+const flushCache = () => {
+  const flushDir = (dirPath) => {
+    const files = fs.readdirSync(dirPath);
+    for (let file of files) {
+      if (file !== 'README.md') {
+        fs.unlinkSync(dirPath + file);
+      }
+    }
+  }
+  flushDir(constants.IMG_DIR);
+  flushDir(constants.DIST_IMG_FULL);
+  fs.unlinkSync('./scraperCache.json');
+}
 
 // Run scraper on server start.
 runScraper();
