@@ -10,10 +10,11 @@
     "url": "http://apelsi.net"
   },
   "scripts": {
-    "start": "sh start.sh",
+    "start": "NODE_ENV=production forever start -a -e serverErr.log -o serverOut.log ./bin/www && forever start -a -e scraperErr.log -o scraperOut.log job.js",
     "stop": "rm data.json && forever stopall",
     "server": "NODE_ENV=production node ./bin/www",
     "job": "NODE_ENV=production node ./job.js",
+    "restart:job": "NODE_ENV=production forever stop 1 && forever start -a -e scraperErr.log -o scraperOut.log job.js",
     "debug:server": "NODE_ENV=development DEBUG=worldnews-10k:* node ./bin/www",
     "debug:job": "NODE_ENV=development node ./job.js",
     "test": "NODE_ENV=test mocha -w"

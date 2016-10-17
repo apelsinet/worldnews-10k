@@ -8,17 +8,17 @@ const DATA_JSON = './data.json';
 const CACHE = './scraperCache.json';
 const minutes = 5, scraperInterval = minutes * 60 * 1000;
 const dev = process.env.NODE_ENV === 'development' ? true : false;
+let retriesRemaining = 5;
 let archiverHasRun;
 
 const runScraper = () => {
-  let retriesRemaining = 5;
   scraper().then(result => {
     if (fileExists(DATA_JSON)) fs.unlinkSync(DATA_JSON);
     fs.writeFile(DATA_JSON, JSON.stringify(result), (err) => {
       if (err) {
         if (retriesRemaining > 0) {
           retriesRemaining--;
-          setTimeout(runScraper(), 2000);
+          setTimeout(() => runScraper(), 2000);
         }
         else {
           throw err;
