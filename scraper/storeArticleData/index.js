@@ -1,9 +1,9 @@
 const constants = require('../constants');
 const sanitizeImageURL = require('../sanitizeImageURL');
 
-const removePipe = (title) => {
-  const n = title.indexOf('|');
-  return title.substring(0, n !== -1 ? n : title.length);
+const removePipe = (string) => {
+  const n = string.indexOf('|');
+  return string.substring(0, n !== -1 ? n : string.length);
 }
 
 const shortenString = (string, threshold) => {
@@ -56,7 +56,7 @@ const processDescription = (description, title, threshold) => {
   // Title too long, remove description
   if (stringTooLong(title, threshold)) return '';
   else {
-    if (description !== undefined) {
+    if (description !== undefined && typeof description === 'string') {
       return processString(removePipe(description), threshold);
     }
     else {

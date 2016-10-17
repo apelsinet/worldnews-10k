@@ -3,6 +3,7 @@ const fs = require('fs');
 const archiver = require('archiver');
 const scraper = require('./scraper');
 const fileExists = require('./scraper/fileExists');
+const constants = require('./scraper/constants');
 const DATA_JSON = './data.json';
 const CACHE = './scraperCache.json';
 const minutes = 5, scraperInterval = minutes * 60 * 1000;
@@ -29,6 +30,9 @@ const runScraper = () => {
         runArchiver(result).then(() => {
           archiverHasRun = now.getDate();
           runScraper();
+        }).catch((err) => {
+          console.log(err);
+          runScraper();
         });
       }
       if (dev) console.log(result);
@@ -41,9 +45,32 @@ const runScraper = () => {
 const runArchiver = (data) => new Promise((resolve, reject) => {
   const now = new Date();
   const dateString = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
-  console.log(dateString);
-  resolve();
+  let output = fs.createWriteStream('./archive/' + dateString + '.tar.gz');
+  let archive = archiver('tar', {
+    gzip: true,
+    gzipOptions: {
+      level: 1
+    }
+  });
 
+  output.on('close', () => {
+    console.log('Archive size: ' + archive.pointer() + ' total bytes');
+    console.log('Archiver has been finalized and the output file has been closed.');
+    resolve();
+  });
+
+  archive.on('error', (err) => {
+    reject(err);
+  });
+
+  archive.pipe(output);
+
+  for(let i = 0; i < constants.ARTICLES_TO_SCRAPE; i++) {
+    archive.append(fs.createReadStream(constants.IMG_DIR + data[i].imgFileName), {name: data[i].imgFileName});
+  }
+  archive
+    .append(fs.createReadStream('./scraperCache.json'), {name: 'scraperCache.json'})
+    .finalize();
 });
 
 // Run scraper on server start.
