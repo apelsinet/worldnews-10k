@@ -46,6 +46,8 @@ router.get('/', function(req, res, next) {
 
   res.render('index', {
     title: 'WorldNews 10K',
+    desc: 'Read the latest world news, delivered in less than 10kB.',
+    keywords: 'read, world, news, reddit, performance, 10k',
     jsHash: '/js/' + staticAsset.jsHash + '.js',
     cssHash: '/css/' + staticAsset.cssHash + '.css',
     a0title: obj[0].title,
