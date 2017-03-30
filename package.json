@@ -10,7 +10,7 @@
     "url": "http://apelsi.net"
   },
   "scripts": {
-    "start": "NODE_ENV=production forever start -a -e serverErr.log -o serverOut.log ./bin/www && forever start -a -e scraperErr.log -o scraperOut.log job.js",
+    "start": "NODE_ENV=production forever start -a -e serverErr.log -o serverOut.log ./bin/www && forever start -a -e scraperErr.log -o scraperOut.log job.js && PORT=3001 forever start -a ./bin/www && PORT=3002 forever start -a ./bin/www && PORT=3003 forever start -a ./bin/www",
     "stop": "rm data.json && forever stopall",
     "server": "NODE_ENV=production node ./bin/www",
     "job": "NODE_ENV=production node ./job.js",
