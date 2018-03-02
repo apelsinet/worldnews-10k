@@ -1,6 +1,6 @@
 # WorldNews-10K
-
 ![Circle CI build status](https://circleci.com/gh/apelsinet/worldnews-10k.svg?style=shield&circle-token=a6505462539ea0a61277ea90fcef36a312bbaeb1)
+
 This project was created for the 10kB challenge by [10k Apart](https://a-k-apart.com/). Its main goal is to present today's world news in less than 10kB. To do this we fetch json from the [/r/WorldNews](https://www.reddit.com/r/worldnews/) subreddit using Reddit's API. From this json we parse titles, URLs to articles, comment counts and comment URLs. The article URLs are fed to a scraper, which downloads article images, and gets additional article descriptions via [Open Graph](http://ogp.me/) metadata. The images are then compressed and preview versions are also scaled down and base64 encoded. These previews are displayed on initial load of the application with a blur filter on top. After the page has completely loaded with these minimal resources, it lazy loads the high res version of the images and two web fonts.
 
 ## Stack
