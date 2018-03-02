@@ -17,7 +17,8 @@
     "restart:job": "NODE_ENV=production forever stop 1 && forever start -a -e scraperErr.log -o scraperOut.log job.js",
     "debug:server": "NODE_ENV=development DEBUG=worldnews-10k:* node ./bin/www",
     "debug:job": "NODE_ENV=development node ./job.js",
-    "test": "NODE_ENV=test mocha -w"
+    "test": "NODE_ENV=test mocha",
+    "test:watch": "NODE_ENV=test mocha -w"
   },
   "dependencies": {
     "archiver": "^1.1.0",
